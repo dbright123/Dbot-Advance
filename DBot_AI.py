@@ -10,21 +10,13 @@ print("MetaTrader5 package author: ",mt5.__author__)
 print("MetaTrader5 package version: ",mt5.__version__)
 
 def r_squared(y_true, y_pred):
-  """Calculates the R-squared score.
-
-  Args:
-    y_true: The ground truth values.
-    y_pred: The predicted values.
-
-  Returns:
-    The R-squared score.
-  """
-
   mean_y_true = np.mean(y_true)
   ss_tot = np.sum((y_true - mean_y_true)**2)
   ss_res = np.sum((y_true - y_pred)**2)
   r_squared = 1 - ss_res / ss_tot
   return r_squared
+
+
 
 target_market = ["GBPUSD","USDCAD","XAUUSD"]
 models = []
