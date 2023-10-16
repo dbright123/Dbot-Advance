@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 print("MetaTrader5 package author: ",mt5.__author__)
 print("MetaTrader5 package version: ",mt5.__version__)
 
+#function to check performance of the model
 def r_squared(y_true, y_pred):
   mean_y_true = np.mean(y_true)
   ss_tot = np.sum((y_true - mean_y_true)**2)
@@ -18,7 +19,7 @@ def r_squared(y_true, y_pred):
 
 
 
-target_market = ["GBPUSD","USDCAD","XAUUSD"]
+target_market = ["GBPUSD","USDCAD","XAUUSD"] #list of market
 models = []
 sc_xs = []
 sc_ys = []
@@ -73,7 +74,6 @@ else:
             print(r_squared, " is the current prediction model performance")
             if(r_squared <= 85):
                 print(target_market[n]+" will need re-training, please train the model again or check program for error, the prediction is too poor")
-                time.sleep(5)
                 print("checking other market")
                 break
 
@@ -271,11 +271,13 @@ else:
 
             
             print(mt5.last_error())
-            break
+            time.sleep(5)
+            
 
 
         else:
             print("Please make sure metatrade 5 has internet and algo Trade is Turn On")
+            time.sleep(5)
     
 
 mt5.shutdown()
