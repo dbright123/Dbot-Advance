@@ -1,0 +1,9 @@
+GBPUSD regressor.joblib
+GBPUSD sc_x.joblib
+GBPUSD sc_y.joblib
+USDCAD regressor.joblib
+USDCAD sc_x.joblib
+USDCAD sc_y.joblib
+XAUUSD regressor.joblib
+XAUUSD sc_x.joblib
+XAUUSD sc_y.joblib
