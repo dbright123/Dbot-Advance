@@ -3,11 +3,15 @@ import numpy as np
 import joblib
 
 import time
-from datetime import datetime, timezone
+
 
 
 print("MetaTrader5 package author: ",mt5.__author__)
 print("MetaTrader5 package version: ",mt5.__version__)
+
+
+
+lot = 0.01 ##Lot size to trade market
 
 
 
@@ -22,6 +26,7 @@ def r_squared(y_true, y_pred):
 
 
 target_market = ["GBPUSD","USDCAD","XAUUSD"] #list of market
+#loading market model and standard scaler
 models = []
 sc_xs = []
 sc_ys = []
@@ -45,7 +50,7 @@ else:
     while(True):
         account = mt5.account_info()
         terminal = mt5.terminal_info()
-        lot = 0.01
+        
         print(account.equity)
         if(terminal.connected == True and terminal.trade_allowed == True):
             print("AI is functional loading "+target_market[n])
@@ -75,7 +80,7 @@ else:
             y_pred = y_pred.reshape(-1)
 
             r_squared = r_squared(close_price[-100:], y_pred[-100:])
-
+            print("stage 1")
             print(r_squared, " is the current prediction model performance")
 
             if(r_squared <= 85):
@@ -86,10 +91,6 @@ else:
             else:
                 data = sc_x.inverse_transform(data)
                 # creating an assumption on the system
-
-                print(close_price[-1:])
-                print(data[-1:,:])
-
                 y_pred = model.predict(sc_x.transform(data[-1:,:]))
                 y_pred = sc_y.inverse_transform(y_pred.reshape((len(y_pred),1)))
                 y_pred = y_pred.reshape(-1)
@@ -152,7 +153,7 @@ else:
 
 
 
-
+                print("Stage 2")
                 if(permit_trade):
                     print("Trade activation on "+target_market[n])
 
@@ -191,7 +192,7 @@ else:
                         print(result)
 
 
-
+                print("Stage 3")
                 #current stage
                 if(modify_trade):
                     #modify the market
@@ -204,13 +205,13 @@ else:
                     }
                     price = mt5.symbol_info_tick(symbol).bid
                     close_trade = False
-                    if(order_type == 0):
+                    if(target_order.type == 0):
                         if(y_pred[-1] > price):
                             result=mt5.order_send(request)
                             print(result)
                         elif(y_pred[-1] < price):
                             close_trade = True
-                    elif(order_type == 1):
+                    elif(target_order.type == 1):
                         if(y_pred[-1] < price):
                             result=mt5.order_send(request)
                             print(result)
@@ -218,19 +219,11 @@ else:
                             close_trade = True
                         
                 if(close_trade):
-                    request = {
-                        "action": mt5.TRADE_ACTION_DEAL,
-                        "symbol": target_order.symbol,
-                        "volume" : target_order.volume,
-                        'ticket': target_order.ticket,
-                        "type" : target_order.type,
-                        "price" : target_order.price_current
-                    }
-                    result=mt5.order_send(request)
+                    result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
                     print(result)
 
-
-
+                print("Stage 4")
+                ## Auto stoploss 
                 if(target_order.profit >= target_order.volume * 100 and target_order.sl == 0):
                     #modify the market
                     sl = target_order.price_current + target_order.price_open
@@ -252,7 +245,7 @@ else:
 
 
 
-                
+                print("Stage 5")
                 print(mt5.last_error())
                 time.sleep(5)
             
