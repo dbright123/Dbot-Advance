@@ -7,3 +7,8 @@ USDCAD sc_y.joblib
 XAUUSD regressor.joblib
 XAUUSD sc_x.joblib
 XAUUSD sc_y.joblib
+settings.iss
+settings.json
+Dbot_ML/*
+Dbot_ML
+Dbot Installer.exe

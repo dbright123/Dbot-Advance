@@ -8,10 +8,15 @@ print("MetaTrader5 package author: ",mt5.__author__)
 print("MetaTrader5 package version: ",mt5.__version__)
 
 
+lot = 0.01
 
-lot = 0.01 ##Lot size to trade market
+try: 
+    lot = float(input("Please enter the lot size you will like to trade with\n"))
+except:
+    lot = 0.01
+ ##Lot size to trade market
 
-
+if(lot <= 0.01): lot = 0.01
 
 target_market = ["GBPUSD","USDCAD","XAUUSD"] #list of market
 #loading market model and standard scaler
