@@ -1,9 +1,7 @@
 import MetaTrader5 as mt5
 import numpy as np
 import joblib
-
 import time
-
 
 
 print("MetaTrader5 package author: ",mt5.__author__)
@@ -12,16 +10,6 @@ print("MetaTrader5 package version: ",mt5.__version__)
 
 
 lot = 0.01 ##Lot size to trade market
-
-
-
-#function to check performance of the model
-def r_squared(y_true, y_pred):
-  mean_y_true = np.mean(y_true)
-  ss_tot = np.sum((y_true - mean_y_true)**2)
-  ss_res = np.sum((y_true - y_pred)**2)
-  r_squared = 1 - ss_res / ss_tot
-  return r_squared
 
 
 
@@ -79,14 +67,22 @@ else:
             y_pred = sc_y.inverse_transform(y_pred.reshape((len(y_pred),1)))
             y_pred = y_pred.reshape(-1)
 
-            r_squared = r_squared(close_price[-100:], y_pred[-100:])
+            r_squared = model.score(
+                data,
+                sc_y.transform(close_price.reshape((len(close_price),1))).reshape(-1)
+            )
             print("stage 1")
             print(r_squared, " is the current prediction model performance")
 
-            if(r_squared <= 85):
+            if(r_squared <= 0.85):
                 print(target_market[n]+" will need re-training, please train the model again or check program for error, the prediction is too poor")
                 print("checking other market")
-                time.sleep(5)
+                if(n < len(target_market)-1):
+                    n += 1
+                else:
+                    n = 0
+
+                time.sleep(10)
 
             else:
                 data = sc_x.inverse_transform(data)
@@ -172,6 +168,22 @@ else:
                                 print("seen")
                                 target_order = order_symbol
                                 print(target_order)
+                                print("Stage 3")
+                                ## Auto stoploss 
+                                if(target_order.profit >= target_order.volume * 100 and target_order.sl == 0):
+                                    #modify the market
+                                    sl = target_order.price_current + target_order.price_open
+                                    sl = sl/2
+                                    request = {
+                                        "action": mt5.TRADE_ACTION_SLTP,
+                                        "symbol": target_order.symbol,
+                                        "sl": sl,
+                                        "tp": y_pred[-1],
+                                        "position": target_order.ticket
+                                    }
+                                    result=mt5.order_send(request)
+                                    print(result)
+
                                 o_price = target_order.price_open
                                 c_price = target_order.price_current
                                 profit = target_order.profit
@@ -192,7 +204,8 @@ else:
                         print(result)
 
 
-                print("Stage 3")
+                print("Stage 4")
+                close_trade = False
                 #current stage
                 if(modify_trade):
                     #modify the market
@@ -222,38 +235,19 @@ else:
                     result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
                     print(result)
 
-                print("Stage 4")
-                ## Auto stoploss 
-                if(target_order.profit >= target_order.volume * 100 and target_order.sl == 0):
-                    #modify the market
-                    sl = target_order.price_current + target_order.price_open
-                    sl = sl/2
-                    request = {
-                        "action": mt5.TRADE_ACTION_SLTP,
-                        "symbol": target_order.symbol,
-                        "sl": sl,
-                        "tp": y_pred[-1],
-                        "position": target_order.ticket
-                    }
-                    result=mt5.order_send(request)
-                    print(result)
-
-                if(n < len(target_market)):
+                
+                if(n < len(target_market) - 1):
                     n += 1
                 else:
                     n = 0
 
-
-
                 print("Stage 5")
                 print(mt5.last_error())
-                time.sleep(5)
+                time.sleep(10)
             
-
-
         else:
             print("Please make sure metatrade 5 has internet and algo Trade is Turn On")
-            time.sleep(5)
+            time.sleep(10)
     
 
 mt5.shutdown()
