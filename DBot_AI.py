@@ -132,6 +132,7 @@ else:
                         "type_time": mt5.ORDER_TIME_GTC,
                         "type_filling": mt5.ORDER_FILLING_RETURN,
                     }
+                    
                     permit_trade = True
                 elif(y_pred[-1] < price):
                     price = mt5.symbol_info_tick(symbol).bid
@@ -156,6 +157,15 @@ else:
 
                 print("Stage 2")
                 if(permit_trade):
+                    if(n == 2 and abs(y_pred[-1] - price) > 20): #for Gold
+                        permit_trade = True
+                    elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
+                        permit_trade = True
+                    else:
+                        permit_trade = False
+
+
+                if(permit_trade):
                     print("Trade activation on "+target_market[n])
 
                     if(mt5.positions_total() == 0):
@@ -175,7 +185,7 @@ else:
                                 print(target_order)
                                 print("Stage 3")
                                 ## Auto stoploss 
-                                if(target_order.profit >= target_order.volume * 100 and target_order.sl == 0):
+                                if(target_order.profit >= target_order.volume * 200 and target_order.sl == 0):
                                     #modify the market
                                     sl = target_order.price_current + target_order.price_open
                                     sl = sl/2
@@ -183,7 +193,7 @@ else:
                                         "action": mt5.TRADE_ACTION_SLTP,
                                         "symbol": target_order.symbol,
                                         "sl": sl,
-                                        "tp": y_pred[-1],
+                                        "tp": target_order.tp,
                                         "position": target_order.ticket
                                     }
                                     result=mt5.order_send(request)
@@ -225,14 +235,22 @@ else:
                     close_trade = False
                     if(target_order.type == 0):
                         if(y_pred[-1] > price):
-                            result=mt5.order_send(request)
-                            print(result)
+                            if(n == 2 and abs(y_pred[-1] - price) > 20): #for Gold
+                                result=mt5.order_send(request)
+                                print(result)
+                            elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
+                                result=mt5.order_send(request)
+                                print(result)
                         elif(y_pred[-1] < price):
                             close_trade = True
                     elif(target_order.type == 1):
                         if(y_pred[-1] < price):
-                            result=mt5.order_send(request)
-                            print(result)
+                            if(n == 2 and abs(y_pred[-1] - price) > 20): #for Gold
+                                result=mt5.order_send(request)
+                                print(result)
+                            elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
+                                result=mt5.order_send(request)
+                                print(result)
                         elif(y_pred[-1] > price):
                             close_trade = True
                         
