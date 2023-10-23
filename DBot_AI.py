@@ -41,11 +41,10 @@ else:
     print("\n")
     print(mt5.terminal_info()._asdict())
     while(True):
-        account = mt5.account_info()
         terminal = mt5.terminal_info()
-        
-        print(account.equity)
         if(terminal.connected == True and terminal.trade_allowed == True):
+            account = mt5.account_info()
+            print(account.equity)
             print("AI is functional loading "+target_market[n])
             model = models[n]
             sc_x = sc_xs[n]
@@ -157,7 +156,7 @@ else:
 
                 print("Stage 2")
                 if(permit_trade):
-                    if(n == 2 and abs(y_pred[-1] - price) > 20): #for Gold
+                    if(n == 2 and abs(y_pred[-1] - price) > 5): #for Gold
                         permit_trade = True
                     elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
                         permit_trade = True
@@ -234,8 +233,8 @@ else:
                     price = mt5.symbol_info_tick(symbol).bid
                     close_trade = False
                     if(target_order.type == 0):
-                        if(y_pred[-1] > price):
-                            if(n == 2 and abs(y_pred[-1] - price) > 20): #for Gold
+                        if(y_pred[-1] > price and y_pred[-1] != target_order.tp):
+                            if(n == 2 and abs(y_pred[-1] - price) > 5): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
                             elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
@@ -244,8 +243,8 @@ else:
                         elif(y_pred[-1] < price):
                             close_trade = True
                     elif(target_order.type == 1):
-                        if(y_pred[-1] < price):
-                            if(n == 2 and abs(y_pred[-1] - price) > 20): #for Gold
+                        if(y_pred[-1] < price and y_pred[-1] != target_order.tp):
+                            if(n == 2 and abs(y_pred[-1] - price) > 5): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
                             elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
