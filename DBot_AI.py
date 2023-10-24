@@ -10,14 +10,6 @@ print("MetaTrader5 package version: ",mt5.__version__)
 
 lot = 0.01
 
-try: 
-    lot = float(input("Please enter the lot size you will like to trade with\n"))
-except:
-    lot = 0.01
- ##Lot size to trade market
-
-if(lot <= 0.01): lot = 0.01
-
 target_market = ["GBPUSD","USDCAD","XAUUSD"] #list of market
 #loading market model and standard scaler
 models = []
@@ -27,7 +19,6 @@ for market in target_market:
     models.append(joblib.load(market+" regressor.joblib"))
     sc_xs.append(joblib.load(market+" sc_x.joblib"))
     sc_ys.append(joblib.load(market+" sc_y.joblib"))
-
 
 
 n = 0 # counter variable
@@ -86,7 +77,7 @@ else:
                 else:
                     n = 0
 
-                time.sleep(10)
+                time.sleep(20)
 
             else:
                 data = sc_x.inverse_transform(data)
@@ -265,11 +256,11 @@ else:
 
                 print("Stage 5")
                 print(mt5.last_error())
-                time.sleep(10)
+                time.sleep(20)
             
         else:
             print("Please make sure metatrade 5 has internet and algo Trade is Turn On")
-            time.sleep(10)
+            time.sleep(20)
     
 
 mt5.shutdown()
