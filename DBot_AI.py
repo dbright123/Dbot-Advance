@@ -147,6 +147,7 @@ else:
 
                 print("Stage 2")
                 if(permit_trade):
+                    price = mt5.symbol_info_tick(symbol).bid
                     if(n == 2 and abs(y_pred[-1] - price) > 5): #for Gold
                         permit_trade = True
                     elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
@@ -200,6 +201,12 @@ else:
                                 print("profit ",profit)
                                 print("lot size ",lot_size)
                                 print("order type ",order_type)
+                                if(order_type == 0 and target_order.tp < o_price):
+                                    result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
+                                    print(result)
+                                elif(order_type == 1 and target_order.tp > o_price):
+                                    result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
+                                    print(result)
                                 modify_trade = True
                                 break
 
@@ -232,7 +239,8 @@ else:
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[-1] < price):
-                            close_trade = True
+                            result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
+                            print(result)
                     elif(target_order.type == 1):
                         if(y_pred[-1] < price and y_pred[-1] != target_order.tp):
                             if(n == 2 and abs(y_pred[-1] - price) > 5): #for Gold
@@ -242,12 +250,10 @@ else:
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[-1] > price):
-                            close_trade = True
+                            result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
+                            print(result)
                         
-                if(close_trade):
-                    result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
-                    print(result)
-
+    
                 
                 if(n < len(target_market) - 1):
                     n += 1
