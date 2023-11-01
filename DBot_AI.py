@@ -2,7 +2,7 @@ import MetaTrader5 as mt5
 import numpy as np
 import joblib
 import time
-from datetime import datetime
+from datetime import datetime,timezone
 
 print("MetaTrader5 package author: ",mt5.__author__)
 print("MetaTrader5 package version: ",mt5.__version__)
@@ -82,18 +82,25 @@ else:
             else:
                 data = sc_x.inverse_transform(data)
 
-                utc_time = datetime.fromtimestamp(int(data[-1,0]))
-                hour = utc_time.hour
+               # Get the current datetime in UTC
+                now_utc = datetime.utcnow()
 
-                chart1H = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H1, 0, 5)
-                print(chart1H[-1][0])
+                # Convert the UTC datetime to GMT +0
+                now_gmt0 = now_utc.astimezone(timezone.utc)
 
-                utc_time1H = datetime.fromtimestamp(int(chart1H[-1][0]))
-                h1H = utc_time1H.hour
-
-                time_align = False # To only enable trade when the current hour align with predicted hour
-                if(hour == h1H): time_align = True
-
+                # Get the year, month, day, and hour from the GMT +0 datetime
+                year = now_gmt0.year
+                month = now_gmt0.month
+                day = now_gmt0.day
+                hour = now_gmt0.hour
+                mins = now_gmt0.minute
+                # Print the results
+                print("Year:", year)
+                print("Month:", month)
+                print("Day:", day)
+                print("Hour:", hour)
+                print("Minute:", mins)
+                
 
                 # creating an assumption on the system
                 y_pred = model.predict(sc_x.transform(data[-1:,:]))
@@ -162,9 +169,9 @@ else:
                 print("Stage 2")
                 if(permit_trade):
                     price = mt5.symbol_info_tick(symbol).bid
-                    if(n == 2 and abs(y_pred[-1] - price) > 5): #for Gold
+                    if(n == 2 and abs(y_pred[-1] - price) > 1): #for Gold
                         permit_trade = True
-                    elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
+                    elif(n < 2 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
                         permit_trade = True
                     else:
                         permit_trade = False
@@ -175,9 +182,9 @@ else:
 
                     if(mt5.positions_total() == 0):
                         #Ordering the trade
-                        if(time_align):
-                            result=mt5.order_send(request)
-                            print(result)
+                    
+                        result=mt5.order_send(request)
+                        print(result)
 
                     else:
                         #checking if the trade exist so as to modified it 
@@ -227,9 +234,9 @@ else:
 
 
                     if(modify_trade == False):
-                        if(time_align):
-                            result=mt5.order_send(request)
-                            print(result)
+                       
+                        result=mt5.order_send(request)
+                        print(result)
 
 
                 print("Stage 4")
@@ -248,10 +255,10 @@ else:
                     close_trade = False
                     if(target_order.type == 0):
                         if(y_pred[-1] > price and y_pred[-1] != target_order.tp):
-                            if(n == 2 and abs(y_pred[-1] - price) > 5): #for Gold
+                            if(n == 2 and abs(y_pred[-1] - price) > 1): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
+                            elif(n < 2 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[-1] < price):
@@ -259,10 +266,10 @@ else:
                             print(result)
                     elif(target_order.type == 1):
                         if(y_pred[-1] < price and y_pred[-1] != target_order.tp):
-                            if(n == 2 and abs(y_pred[-1] - price) > 5): #for Gold
+                            if(n == 2 and abs(y_pred[-1] - price) > 1): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < 2 and abs(y_pred[-1] - price) > 0.002): #for other 4 or 5 digit currency
+                            elif(n < 2 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[-1] > price):
@@ -278,9 +285,8 @@ else:
 
                 print("Stage 5")
                 print(mt5.last_error())
-                print("current hour is ",h1H," model hour for prediction is ",hour)
-                if(hour is not h1H):
-                    print("each hour must align for a trade to be executed else only editing of tp and sl plus closing of trade will occur")
+                
+                
                 time.sleep(20)
             
         else:
