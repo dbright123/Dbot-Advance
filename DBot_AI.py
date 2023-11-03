@@ -35,6 +35,7 @@ else:
         terminal = mt5.terminal_info()
         if(terminal.connected == True and terminal.trade_allowed == True):
             account = mt5.account_info()
+            print(account)
             print(account.equity)
             print("AI is functional loading "+target_market[n])
             model = models[n]
@@ -92,7 +93,7 @@ else:
                 year = now_gmt0.year
                 month = now_gmt0.month
                 day = now_gmt0.day
-                hour = now_gmt0.hour
+                hour = now_gmt0.hour + 1
                 mins = now_gmt0.minute
                 # Print the results
                 print("Year:", year)
@@ -100,7 +101,12 @@ else:
                 print("Day:", day)
                 print("Hour:", hour)
                 print("Minute:", mins)
-                
+                allow_trade = False
+                if(hour > 8 and hour < 14): allow_trade = True
+                else: 
+                    print("no new market will be able to get purchased due to late hour")
+                    print("total profit is ",account.profit)
+                    
 
                 # creating an assumption on the system
                 y_pred = model.predict(sc_x.transform(data[-1:,:]))
@@ -182,9 +188,10 @@ else:
 
                     if(mt5.positions_total() == 0):
                         #Ordering the trade
-                    
-                        result=mt5.order_send(request)
-                        print(result)
+                        #here
+                        if(allow_trade):
+                            result=mt5.order_send(request)
+                            print(result)
 
                     else:
                         #checking if the trade exist so as to modified it 
@@ -234,9 +241,10 @@ else:
 
 
                     if(modify_trade == False):
-                       
-                        result=mt5.order_send(request)
-                        print(result)
+                       # here
+                        if(allow_trade):
+                            result=mt5.order_send(request)
+                            print(result)
 
 
                 print("Stage 4")
@@ -284,6 +292,8 @@ else:
                     n = 0
 
                 print("Stage 5")
+
+                
                 print(mt5.last_error())
                 
                 
