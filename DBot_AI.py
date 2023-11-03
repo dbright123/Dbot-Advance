@@ -102,7 +102,7 @@ else:
                 print("Hour:", hour)
                 print("Minute:", mins)
                 allow_trade = False
-                if(hour > 8 and hour < 14): allow_trade = True
+                if(hour > 7 and hour < 14): allow_trade = True
                 else: 
                     print("no new market will be able to get purchased due to late hour")
                     print("total profit is ",account.profit)
