@@ -50,7 +50,7 @@ else:
             open_price = []
 
             for i in range(len(rates)):
-                data.append([rates[i][0],rates[i][1],rates[i][5]])
+                data.append([rates[i][0],rates[i][1],rates[i][2],rates[i][3],rates[i][5]])
                 open_price.append(rates[i][1])
                 close_price.append(rates[i][4])
 
