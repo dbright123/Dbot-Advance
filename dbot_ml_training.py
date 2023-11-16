@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-target_market =  ["GBPUSD","USDCAD","XAUUSD","AUDUSD","USDJPY","NZDUSD","EURUSD","EURJPY"]
+target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","USDCNH","NZDUSD","EURUSD","XAUUSD"]
 
 for n in range(len(target_market)):
     df = pd.read_csv("Generated"+target_market[n] +" dbot.csv")

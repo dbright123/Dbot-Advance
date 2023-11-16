@@ -10,7 +10,7 @@ print("MetaTrader5 package version: ",mt5.__version__)
 
 lot = 0.01
 
-target_market =  ["GBPUSD","USDCAD","AUDUSD","NZDUSD","EURUSD","XAUUSD"] #list of market
+target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","USDCNH","NZDUSD","EURUSD","XAUUSD"] #list of market
 #loading market model and standard scaler
 models = []
 sc_xs = []
