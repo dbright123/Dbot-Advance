@@ -10,7 +10,7 @@ print("MetaTrader5 package version: ",mt5.__version__)
 
 lot = 0.01
 
-target_market =  ["GBPUSD","USDCAD","XAUUSD","AUDUSD","USDJPY","NZDUSD","EURUSD","EURJPY"] #list of market
+target_market =  ["GBPUSD","USDCAD","AUDUSD","USDJPY","NZDUSD","EURUSD","EURJPY","XAUUSD"] #list of market
 #loading market model and standard scaler
 models = []
 sc_xs = []
@@ -175,9 +175,9 @@ else:
                 print("Stage 2")
                 if(permit_trade):
                     price = mt5.symbol_info_tick(symbol).bid
-                    if(n == 2 and abs(y_pred[-1] - price) > 1): #for Gold
+                    if(n == len(target_market) - 1 and abs(y_pred[-1] - price) > 1): #for Gold
                         permit_trade = True
-                    elif(n < 2 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
+                    elif(n < len(target_market) - 1 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
                         permit_trade = True
                     else:
                         permit_trade = False
@@ -263,10 +263,10 @@ else:
                     close_trade = False
                     if(target_order.type == 0):
                         if(y_pred[-1] > price and y_pred[-1] != target_order.tp):
-                            if(n == 2 and abs(y_pred[-1] - price) > 1): #for Gold
+                            if(n == len(target_market) - 1 and abs(y_pred[-1] - price) > 1): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < 2 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
+                            elif(n < len(target_market) - 1 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[-1] < price):
@@ -274,10 +274,10 @@ else:
                             print(result)
                     elif(target_order.type == 1):
                         if(y_pred[-1] < price and y_pred[-1] != target_order.tp):
-                            if(n == 2 and abs(y_pred[-1] - price) > 1): #for Gold
+                            if(n == len(target_market) - 1 and abs(y_pred[-1] - price) > 1): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < 2 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
+                            elif(n < len(target_market) - 1 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[-1] > price):
