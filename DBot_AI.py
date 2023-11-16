@@ -10,7 +10,7 @@ print("MetaTrader5 package version: ",mt5.__version__)
 
 lot = 0.01
 
-target_market = ["GBPUSD","USDCAD","XAUUSD"] #list of market
+target_market =  ["GBPUSD","USDCAD","XAUUSD","AUDUSD","USDJPY","NZDUSD","EURUSD","EURJPY"] #list of market
 #loading market model and standard scaler
 models = []
 sc_xs = []
@@ -42,7 +42,7 @@ else:
             sc_x = sc_xs[n]
             sc_y = sc_ys[n]
             
-            rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 500)
+            rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 1000)
             print(rates[0][0])
             print(rates.shape)
             data = []
@@ -205,7 +205,7 @@ else:
                                 print(target_order)
                                 print("Stage 3")
                                 ## Auto stoploss 
-                                if(target_order.profit >= target_order.volume * 200 and target_order.sl == 0):
+                                if(target_order.profit >= target_order.volume * 100 and target_order.sl == 0):
                                     #modify the market
                                     sl = target_order.price_current + target_order.price_open
                                     sl = sl/2

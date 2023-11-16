@@ -7,6 +7,21 @@ USDCAD sc_y.joblib
 XAUUSD regressor.joblib
 XAUUSD sc_x.joblib
 XAUUSD sc_y.joblib
+AUDUSD regressor.joblib
+AUDUSD sc_x.joblib
+AUDUSD sc_y.joblib
+EURUSD regressor.joblib
+EURUSD sc_x.joblib
+EURUSD sc_y.joblib
+EURJPY regressor.joblib
+EURJPY sc_x.joblib
+EURJPY sc_y.joblib
+USDJPY regressor.joblib
+USDJPY sc_x.joblib
+USDJPY sc_y.joblib
+NZDUSD regressor.joblib
+NZDUSD sc_x.joblib
+NZDUSD sc_y.joblib
 settings.iss
 settings.json
 Dbot_ML/*
