@@ -6,9 +6,10 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","USDCNH","NZDUSD","EURUSD","XAUUSD"]
+target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","NZDUSD","EURUSD","XAUUSD"]
 
 for n in range(len(target_market)):
+    print(target_market[n])
     df = pd.read_csv("Generated"+target_market[n] +" dbot.csv")
     print(len(df))
     df.head()
@@ -36,7 +37,7 @@ for n in range(len(target_market)):
 
     print(x_test.shape)
 
-    regressor = RandomForestRegressor(n_estimators=300)
+    regressor = RandomForestRegressor(n_estimators=300,verbose=1, n_jobs=10)
     regressor.fit(x_train,y_train)
 
     joblib.dump(sc_x,target_market[n]+' sc_x.joblib')
@@ -48,4 +49,6 @@ for n in range(len(target_market)):
         sc_y.transform(y_test.reshape((len(y_test),1))).reshape(-1)
     )
     print(score)
-    print("next market is ",target_market[n + 1])
+    
+
+quit()

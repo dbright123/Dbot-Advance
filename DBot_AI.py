@@ -10,7 +10,7 @@ print("MetaTrader5 package version: ",mt5.__version__)
 
 lot = 0.01
 
-target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","USDCNH","NZDUSD","EURUSD","XAUUSD"] #list of market
+target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","NZDUSD","EURUSD","XAUUSD"] #list of market
 #loading market model and standard scaler
 models = []
 sc_xs = []
@@ -42,7 +42,7 @@ else:
             sc_x = sc_xs[n]
             sc_y = sc_ys[n]
             
-            rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 1000)
+            rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H1, 0, 500)
             print(rates[0][0])
             print(rates.shape)
             data = []
@@ -102,7 +102,8 @@ else:
                 print("Hour:", hour)
                 print("Minute:", mins)
                 allow_trade = False
-                if(hour > 7 and hour < 20): allow_trade = True
+                #testing = True
+                if(hour > 1 and hour < 20): allow_trade = True
                 else: 
                     print("no new market will be able to get purchased due to late hour")
                     print("total profit is ",account.profit)
