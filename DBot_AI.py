@@ -61,7 +61,7 @@ else:
   
             y_pred = sc_y.inverse_transform(y_pred.reshape((len(y_pred),1)))
             y_pred = y_pred.reshape(-1)
-            print(y_pred)
+            #print(y_pred)
 
             r_squared = model.score(
                 data,
@@ -81,8 +81,6 @@ else:
                 time.sleep(20)
 
             else:
-                #data = sc_x.inverse_transform(data)
-
                # Get the current datetime in UTC
                 now_utc = datetime.utcnow()
 
@@ -96,11 +94,8 @@ else:
                 hour = now_gmt0.hour + 1
                 mins = now_gmt0.minute
                 # Print the results
-                print("Year:", year)
-                print("Month:", month)
-                print("Day:", day)
-                print("Hour:", hour)
-                print("Minute:", mins)
+                print("Year:", year,"Month:", month,"Day:", day,"Minute:", mins)
+
                 allow_trade = False
                 #testing = True
                 if(hour > 8 and hour < 18): allow_trade = True
@@ -113,7 +108,7 @@ else:
         
                 symbol = target_market[n]
                 price = mt5.symbol_info_tick(symbol).bid
-                print("current price for ",target_market[n]," is ",price, " predicted price is ",y_pred[0])
+                print("current price for ",target_market[n]," is ",price, " predicted price is ",y_pred[0], " and close price on timeframe is ",close_price[0])
 
 
                 permit_trade = False
@@ -123,8 +118,8 @@ else:
                 profit = 0
                 lot_size = 0
                 order_type = 0
-                sl = 0
-
+                sl = 0.0
+                target_order = None
 
                 
                 if(y_pred[0] > price):
@@ -199,7 +194,7 @@ else:
                                 print(target_order)
                                 print("Stage 3")
                                 ## Auto stoploss 
-                                if(target_order.profit >= target_order.volume * 100 and target_order.sl == 0):
+                                if(target_order.profit >= target_order.volume * 200  and target_order.sl == 0):
                                     #modify the market
                                     sl = target_order.price_current + target_order.price_open
                                     sl = sl/2
@@ -246,10 +241,13 @@ else:
                 #current stage
                 if(modify_trade):
                     #modify the market
+                    if(target_order.sl != 0):
+                        sl = target_order.sl
+                    
                     request = {
                         "action": mt5.TRADE_ACTION_SLTP,
                         "symbol": target_order.symbol,
-                        "sl": 0.0,
+                        "sl": sl,
                         "tp": y_pred[0],
                         "position": target_order.ticket
                     }
