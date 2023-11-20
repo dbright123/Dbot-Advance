@@ -103,7 +103,7 @@ else:
                 print("Minute:", mins)
                 allow_trade = False
                 #testing = True
-                if(hour > 1 and hour < 20): allow_trade = True
+                if(hour > 8 and hour < 16 and mins < 30): allow_trade = True
                 else: 
                     print("no new market will be able to get purchased due to late hour")
                     print("total profit is ",account.profit)
@@ -133,7 +133,7 @@ else:
 
 
                 
-                if(y_pred[-1] > price):
+                if(y_pred[0] > price):
                     price = mt5.symbol_info_tick(symbol).ask
                     #buying a market
                     request = {
@@ -143,16 +143,15 @@ else:
                         "type": mt5.ORDER_TYPE_BUY,
                         "price": price,
                         "sl": 0.0,
-                        "tp": y_pred[-1],
+                        "tp": y_pred[0],
                         "deviation": 20,
                         "magic": 0,
                         "comment": "Dbot_ML",
                         "type_time": mt5.ORDER_TIME_GTC,
                         "type_filling": mt5.ORDER_FILLING_RETURN,
                     }
-                    
                     permit_trade = True
-                elif(y_pred[-1] < price):
+                elif(y_pred[0] < price):
                     price = mt5.symbol_info_tick(symbol).bid
                     #Selling a market
                     request = {
@@ -162,7 +161,7 @@ else:
                         "type": mt5.ORDER_TYPE_SELL,
                         "price": price,
                         "sl": 0.0,
-                        "tp": y_pred[-1],
+                        "tp": y_pred[0],
                         "deviation": 20,
                         "magic": 0,
                         "comment": "Dbot_ML",
@@ -176,9 +175,9 @@ else:
                 print("Stage 2")
                 if(permit_trade):
                     price = mt5.symbol_info_tick(symbol).bid
-                    if(n == len(target_market) - 1 and abs(y_pred[-1] - price) > 1): #for Gold
+                    if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 2): #for Gold
                         permit_trade = True
-                    elif(n < len(target_market) - 1 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
+                    elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.002): #for other 4 or 5 digit currency
                         permit_trade = True
                     else:
                         permit_trade = False
@@ -257,31 +256,31 @@ else:
                         "action": mt5.TRADE_ACTION_SLTP,
                         "symbol": target_order.symbol,
                         "sl": 0.0,
-                        "tp": y_pred[-1],
+                        "tp": y_pred[0],
                         "position": target_order.ticket
                     }
                     price = mt5.symbol_info_tick(symbol).bid
                     close_trade = False
                     if(target_order.type == 0):
-                        if(y_pred[-1] > price and y_pred[-1] != target_order.tp):
-                            if(n == len(target_market) - 1 and abs(y_pred[-1] - price) > 1): #for Gold
+                        if(y_pred[0] > price and y_pred[0] != target_order.tp):
+                            if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 1): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < len(target_market) - 1 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
+                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
-                        elif(y_pred[-1] < price):
+                        elif(y_pred[0] < price):
                             result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
                             print(result)
                     elif(target_order.type == 1):
-                        if(y_pred[-1] < price and y_pred[-1] != target_order.tp):
-                            if(n == len(target_market) - 1 and abs(y_pred[-1] - price) > 1): #for Gold
+                        if(y_pred[0] < price and y_pred[0] != target_order.tp):
+                            if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 1): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < len(target_market) - 1 and abs(y_pred[-1] - price) > 0.001): #for other 4 or 5 digit currency
+                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
-                        elif(y_pred[-1] > price):
+                        elif(y_pred[0] > price):
                             result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
                             print(result)
                         
