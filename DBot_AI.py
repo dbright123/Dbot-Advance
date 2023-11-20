@@ -42,16 +42,15 @@ else:
             sc_x = sc_xs[n]
             sc_y = sc_ys[n]
             
-            rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H1, 0, 500)
+            rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 500)
             print(rates[0][0])
             print(rates.shape)
             data = []
             close_price = []
-            open_price = []
+           
 
             for i in range(len(rates)):
                 data.append([rates[i][0],rates[i][1],rates[i][2],rates[i][3],rates[i][5]])
-                open_price.append(rates[i][1])
                 close_price.append(rates[i][4])
 
             data = np.array(data)
@@ -59,9 +58,10 @@ else:
 
             data = sc_x.transform(data)
             y_pred = model.predict(data)
-
+  
             y_pred = sc_y.inverse_transform(y_pred.reshape((len(y_pred),1)))
             y_pred = y_pred.reshape(-1)
+            print(y_pred)
 
             r_squared = model.score(
                 data,
@@ -70,7 +70,7 @@ else:
             print("stage 1")
             print(r_squared, " is the current prediction model performance")
 
-            if(r_squared <= 0.85):
+            if(r_squared <= 0.95):
                 print(target_market[n]+" will need re-training, please train the model again or check program for error, the prediction is too poor")
                 print("checking other market")
                 if(n < len(target_market)-1):
@@ -81,7 +81,7 @@ else:
                 time.sleep(20)
 
             else:
-                data = sc_x.inverse_transform(data)
+                #data = sc_x.inverse_transform(data)
 
                # Get the current datetime in UTC
                 now_utc = datetime.utcnow()
@@ -103,23 +103,17 @@ else:
                 print("Minute:", mins)
                 allow_trade = False
                 #testing = True
-                if(hour > 8 and hour < 16 and mins < 30): allow_trade = True
+                if(hour > 8 and hour < 18): allow_trade = True
                 else: 
                     print("no new market will be able to get purchased due to late hour")
                     print("total profit is ",account.profit)
                     
 
-                # creating an assumption on the system
-                y_pred = model.predict(sc_x.transform(data[-1:,:]))
-                y_pred = sc_y.inverse_transform(y_pred.reshape((len(y_pred),1)))
-                y_pred = y_pred.reshape(-1)
-                print(y_pred)
-
                 #Starting trade operation
         
                 symbol = target_market[n]
                 price = mt5.symbol_info_tick(symbol).bid
-                print("current price for ",target_market[n]," is ",price)
+                print("current price for ",target_market[n]," is ",price, " predicted price is ",y_pred[0])
 
 
                 permit_trade = False

@@ -25,7 +25,7 @@ for n in range(len(target_market)):
 
     
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.002, random_state=0)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.001, random_state=0)
     sc_x = StandardScaler()
     sc_y = StandardScaler()
 
