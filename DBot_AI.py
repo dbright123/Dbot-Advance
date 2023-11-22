@@ -43,7 +43,7 @@ else:
             sc_y = sc_ys[n]
             
             rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 500)
-            print(rates[0][0])
+            print(rates)
             print(rates.shape)
             data = []
             close_price = []
@@ -82,19 +82,32 @@ else:
 
             else:
                # Get the current datetime in UTC
+                rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 1)
+                print(rates)
+                data=[[rates[0][0],rates[0][1],rates[0][2],rates[0][3],rates[0][5]]]
+                close_price = [rates[0][4]]
+                data = np.array(data)
+                print(data)
+                close_price = np.array(close_price)
+                print(close_price)
+
+                data = sc_x.transform(data)
+                y_pred = model.predict(data)
+    
+                y_pred = sc_y.inverse_transform(y_pred.reshape((len(y_pred),1)))
+                y_pred = y_pred.reshape(-1)
+
+
                 now_utc = datetime.utcnow()
 
                 # Convert the UTC datetime to GMT +0
                 now_gmt0 = now_utc.astimezone(timezone.utc)
 
                 # Get the year, month, day, and hour from the GMT +0 datetime
-                year = now_gmt0.year
-                month = now_gmt0.month
-                day = now_gmt0.day
                 hour = now_gmt0.hour + 1
                 mins = now_gmt0.minute
                 # Print the results
-                print("Year:", year,"Month:", month,"Day:", day,"Minute:", mins)
+                print("Hour:", hour,": Minute:", mins)
 
                 allow_trade = False
                 #testing = True
@@ -108,9 +121,9 @@ else:
         
                 symbol = target_market[n]
                 price = mt5.symbol_info_tick(symbol).bid
-                print("current price for ",target_market[n]," is ",price, " predicted price is ",y_pred[0], " and close price on timeframe is ",close_price[0])
+                print("current price for ",target_market[n]," is ",price, " predicted price is ",y_pred[0], " difference in price is ",abs(price - y_pred[0]))
 
-
+                
                 permit_trade = False
                 modify_trade = False
                 o_price = 0
@@ -137,7 +150,7 @@ else:
                         "magic": 0,
                         "comment": "Dbot_ML",
                         "type_time": mt5.ORDER_TIME_GTC,
-                        "type_filling": mt5.ORDER_FILLING_RETURN,
+                        #"type_filling": mt5.ORDER_FILLING_RETURN,
                     }
                     permit_trade = True
                 elif(y_pred[0] < price):
@@ -155,7 +168,7 @@ else:
                         "magic": 0,
                         "comment": "Dbot_ML",
                         "type_time": mt5.ORDER_TIME_GTC,
-                        "type_filling": mt5.ORDER_FILLING_RETURN,
+                        #"type_filling": mt5.ORDER_FILLING_RETURN,
                     }
                     permit_trade = True
 
@@ -164,9 +177,9 @@ else:
                 print("Stage 2")
                 if(permit_trade):
                     price = mt5.symbol_info_tick(symbol).bid
-                    if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 2): #for Gold
+                    if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 1): #for Gold
                         permit_trade = True
-                    elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.002): #for other 4 or 5 digit currency
+                    elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.0005): #for other 4 or 5 digit currency
                         permit_trade = True
                     else:
                         permit_trade = False
@@ -251,6 +264,7 @@ else:
                         "tp": y_pred[0],
                         "position": target_order.ticket
                     }
+
                     price = mt5.symbol_info_tick(symbol).bid
                     close_trade = False
                     if(target_order.type == 0):
@@ -258,7 +272,7 @@ else:
                             if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 1): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
+                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.0005): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[0] < price):
@@ -269,7 +283,7 @@ else:
                             if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 1): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
+                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.0005): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[0] > price):
@@ -285,9 +299,7 @@ else:
 
                 print("Stage 5")
 
-                
                 print(mt5.last_error())
-                
                 
                 time.sleep(20)
             
@@ -295,6 +307,5 @@ else:
             print("Please make sure metatrade 5 has internet and algo Trade is Turn On")
             time.sleep(20)
     
-
 mt5.shutdown()
 quit()
