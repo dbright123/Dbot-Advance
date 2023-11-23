@@ -50,7 +50,7 @@ else:
            
 
             for i in range(len(rates)):
-                data.append([rates[i][0],rates[i][1],rates[i][2],rates[i][3],rates[i][5]])
+                data.append([rates[i][0],rates[i][1],rates[i][5]])
                 close_price.append(rates[i][4])
 
             data = np.array(data)
@@ -64,8 +64,8 @@ else:
             #print(y_pred)
 
             r_squared = model.score(
-                data,
-                sc_y.transform(close_price.reshape((len(close_price),1))).reshape(-1)
+                data[-100:],
+                sc_y.transform(close_price[-100:].reshape((len(close_price[-100:]),1))).reshape(-1)
             )
             print("stage 1")
             print(r_squared, " is the current prediction model performance")
@@ -84,7 +84,7 @@ else:
                # Get the current datetime in UTC
                 rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H1, 0, 1)
                 print(rates)
-                data=[[rates[0][0],rates[0][1],rates[0][2],rates[0][3],rates[0][5]]]
+                data=[[rates[0][0],rates[0][1],rates[0][5]]]
                 close_price = [rates[0][4]]
                 data = np.array(data)
                 print(data)
@@ -109,11 +109,11 @@ else:
                 # Print the results
                 print("Hour:", hour,": Minute:", mins)
 
-                allow_trade = True
+                allow_trade = False
                 #testing = True
-                if(hour > 8 and hour < 18): allow_trade = True
+                if(mins < 30): allow_trade = True
                 else: 
-                    print("no new market will be able to get purchased due to late hour")
+                    print("no new market will be able to get purchased due to late minutes")
                     print("total profit is ",account.profit)
                     
 
@@ -269,29 +269,20 @@ else:
                     close_trade = False
                     if(target_order.type == 0):
                         if(y_pred[0] > price and y_pred[0] != target_order.tp):
-                            if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 2): #for Gold
-                                result=mt5.order_send(request)
-                                print(result)
-                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
-                                result=mt5.order_send(request)
-                                print(result)
+                            result=mt5.order_send(request)
+                            print(result)
                         elif(y_pred[0] < price):
                             result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
                             print(result)
                     elif(target_order.type == 1):
                         if(y_pred[0] < price and y_pred[0] != target_order.tp):
-                            if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 2): #for Gold
-                                result=mt5.order_send(request)
-                                print(result)
-                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
-                                result=mt5.order_send(request)
-                                print(result)
+                            result=mt5.order_send(request)
+                            print(result)
                         elif(y_pred[0] > price):
                             result = mt5.Close(target_order.symbol,ticket=target_order.ticket)
                             print(result)
                         
-    
-                
+
                 if(n < len(target_market) - 1):
                     n += 1
                 else:
