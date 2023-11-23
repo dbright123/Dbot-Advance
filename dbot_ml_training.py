@@ -14,11 +14,11 @@ for n in range(len(target_market)):
     print(len(df))
     df.head()
     # Change the position of the 'B' column
-    df = df[['Time', 'Open',"High", "Low", 'Tick Volume', 'Close']]
+    df = df[['Time', 'Open', 'Tick Volume', 'Close']]
     df.tail()
     x = df.values
     y = x[:,-1]
-    x = x[:,:5]
+    x = x[:,:3]
 
     print(x)
     print(y)

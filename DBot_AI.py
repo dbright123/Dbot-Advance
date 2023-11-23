@@ -42,7 +42,7 @@ else:
             sc_x = sc_xs[n]
             sc_y = sc_ys[n]
             
-            rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 500)
+            rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H1, 0, 500)
             print(rates)
             print(rates.shape)
             data = []
@@ -82,7 +82,7 @@ else:
 
             else:
                # Get the current datetime in UTC
-                rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 1)
+                rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H1, 0, 1)
                 print(rates)
                 data=[[rates[0][0],rates[0][1],rates[0][2],rates[0][3],rates[0][5]]]
                 close_price = [rates[0][4]]
@@ -109,7 +109,7 @@ else:
                 # Print the results
                 print("Hour:", hour,": Minute:", mins)
 
-                allow_trade = False
+                allow_trade = True
                 #testing = True
                 if(hour > 8 and hour < 18): allow_trade = True
                 else: 
@@ -177,9 +177,9 @@ else:
                 print("Stage 2")
                 if(permit_trade):
                     price = mt5.symbol_info_tick(symbol).bid
-                    if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 1): #for Gold
+                    if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 2): #for Gold
                         permit_trade = True
-                    elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.0005): #for other 4 or 5 digit currency
+                    elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
                         permit_trade = True
                     else:
                         permit_trade = False
@@ -269,10 +269,10 @@ else:
                     close_trade = False
                     if(target_order.type == 0):
                         if(y_pred[0] > price and y_pred[0] != target_order.tp):
-                            if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 1): #for Gold
+                            if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 2): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.0005): #for other 4 or 5 digit currency
+                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[0] < price):
@@ -280,10 +280,10 @@ else:
                             print(result)
                     elif(target_order.type == 1):
                         if(y_pred[0] < price and y_pred[0] != target_order.tp):
-                            if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 1): #for Gold
+                            if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 2): #for Gold
                                 result=mt5.order_send(request)
                                 print(result)
-                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.0005): #for other 4 or 5 digit currency
+                            elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
                                 result=mt5.order_send(request)
                                 print(result)
                         elif(y_pred[0] > price):
