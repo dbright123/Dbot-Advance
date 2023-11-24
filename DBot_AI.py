@@ -70,7 +70,7 @@ else:
             print("stage 1")
             print(r_squared, " is the current prediction model performance")
 
-            if(r_squared <= 0.95):
+            if(r_squared <= 0.70):
                 print(target_market[n]+" will need re-training, please train the model again or check program for error, the prediction is too poor")
                 print("checking other market")
                 if(n < len(target_market)-1):
@@ -177,14 +177,8 @@ else:
                 print("Stage 2")
                 if(permit_trade):
                     price = mt5.symbol_info_tick(symbol).bid
-                    if(n == len(target_market) - 1 and abs(y_pred[0] - price) > 2): #for Gold
-                        permit_trade = True
-                    elif(n < len(target_market) - 1 and abs(y_pred[0] - price) > 0.001): #for other 4 or 5 digit currency
-                        permit_trade = True
-                    else:
-                        permit_trade = False
-
-
+                    permit_trade = True
+                    
                 if(permit_trade):
                     print("Trade activation on "+target_market[n])
 
