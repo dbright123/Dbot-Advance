@@ -111,7 +111,7 @@ else:
 
                 allow_trade = False
                 #testing = True
-                if(mins < 30): allow_trade = True
+                if(mins < 10): allow_trade = True
                 else: 
                     print("no new market will be able to get purchased due to late minutes")
                     print("total profit is ",account.profit)
