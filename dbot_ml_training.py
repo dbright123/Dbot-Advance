@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","NZDUSD","EURUSD","XAUUSD"]
 
 for n in range(len(target_market)):
-    print(target_market[n])
+    print(target_market[n], " currently")
     df = pd.read_csv("Generated"+target_market[n] +" dbot.csv")
     print(len(df))
     df.head()
@@ -18,7 +18,7 @@ for n in range(len(target_market)):
     df.tail()
     x = df.values
     y = x[:,-1]
-    x = x[:,:3]
+    x = x[:,1:3]
 
     print(x)
     print(y)
