@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
-target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","NZDUSD","EURUSD","XAUUSD"]
+target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","NZDUSD","EURUSD"]
 
 for n in range(len(target_market)):
     print(target_market[n], " currently")
@@ -18,14 +18,14 @@ for n in range(len(target_market)):
     df.tail()
     x = df.values
     y = x[:,-1]
-    x = x[:,1:3]
+    x = x[:,:3]
 
     print(x)
     print(y)
 
     
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.001, random_state=0)
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.01, random_state=0)
     sc_x = StandardScaler()
     sc_y = StandardScaler()
 
@@ -37,7 +37,7 @@ for n in range(len(target_market)):
 
     print(x_test.shape)
 
-    regressor = RandomForestRegressor(n_estimators=300,verbose=1, n_jobs=10)
+    regressor = RandomForestRegressor(n_estimators=400,verbose=1, n_jobs=10)
     regressor.fit(x_train,y_train)
 
     joblib.dump(sc_x,target_market[n]+' sc_x.joblib')

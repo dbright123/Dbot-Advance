@@ -10,7 +10,7 @@ print("MetaTrader5 package version: ",mt5.__version__)
 
 lot = 0.01
 
-target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","NZDUSD","EURUSD","XAUUSD"] #list of market
+target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","NZDUSD","EURUSD"] #list of market
 #loading market model and standard scaler
 models = []
 sc_xs = []
@@ -50,7 +50,7 @@ else:
            
 
             for i in range(len(rates)):
-                data.append([rates[i][0],rates[i][1],rates[i][5]])
+                data.append([rates[i][1],rates[i][5]])
                 close_price.append(rates[i][4])
 
             data = np.array(data)
@@ -84,7 +84,7 @@ else:
                # Get the current datetime in UTC
                 rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H1, 0, 1)
                 print(rates)
-                data=[[rates[0][0],rates[0][1],rates[0][5]]]
+                data=[[rates[0][1],rates[0][5]]]
                 close_price = [rates[0][4]]
                 data = np.array(data)
                 print(data)
