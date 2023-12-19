@@ -29,7 +29,7 @@ for n in range(len(target_market)):
     sc_x = StandardScaler()
     sc_y = StandardScaler()
 
-    x_train = sc_x.fit_transform(x_train)
+    x_train = sc_x.fit_transform(x_train,y_train)
     y_train = sc_y.fit_transform(y_train.reshape((len(y_train),1)))
     y_train = y_train.reshape(-1)
 

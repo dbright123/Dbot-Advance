@@ -149,10 +149,10 @@ else:
                                 
                                 if(target_order.type == 0 and y_pred[0] < target_order.price_open):
                                     result = mt5.Close(target_order.symbol)
-                                    result = mt5.Sell(symbol=target_market[n],volume=lot)
+                                    #result = mt5.Sell(symbol=target_market[n],volume=lot)
                                 elif(target_order.type == 1 and y_pred[0] > target_order.price_open):
                                     result = mt5.Close(target_order.symbol)
-                                    result = mt5.Buy(symbol=target_market[n],volume=lot)
+                                    #result = mt5.Buy(symbol=target_market[n],volume=lot)
                                 print(result)
                                 #changing of takeprofit incase of sudden volume changes
 
