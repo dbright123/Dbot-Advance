@@ -50,7 +50,7 @@ else:
                 close_price = []
 
                 for i in range(len(rates)):
-                    data.append([rates[i][0],rates[i][1],rates[i][5]])
+                    data.append([rates[i][0],rates[i][1],rates[i][5],market[0][6]])
                     close_price.append(rates[i][4])
 
                 data = np.array(data)
@@ -89,7 +89,7 @@ else:
                         print("Please wait for the next opening of 4H candle sticks")
                         allow_trade = False
 
-                    data=[[rates[0][0],rates[0][1],rates[0][5]]]
+                    data=[[rates[0][0],rates[0][1],rates[0][5],market[0][6]]]
                     close_price = [rates[0][4]]
                     data = np.array(data)
                     print(data)
@@ -149,10 +149,10 @@ else:
                                 
                                 if(target_order.type == 0 and y_pred[0] < target_order.price_open):
                                     result = mt5.Close(target_order.symbol)
-                                    #result = mt5.Sell(symbol=target_market[n],volume=lot)
+                                    result = mt5.Sell(symbol=target_market[n],volume=lot)
                                 elif(target_order.type == 1 and y_pred[0] > target_order.price_open):
                                     result = mt5.Close(target_order.symbol)
-                                    #result = mt5.Buy(symbol=target_market[n],volume=lot)
+                                    result = mt5.Buy(symbol=target_market[n],volume=lot)
                                 print(result)
                                 #changing of takeprofit incase of sudden volume changes
 
