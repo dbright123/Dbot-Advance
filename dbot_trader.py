@@ -52,7 +52,7 @@ else:
                 close_price = []
 
                 for i in range(len(rates)):
-                    data.append([rates[i][0],rates[i][1],rates[i][5],rates[0][6]])
+                    data.append([rates[i][0],rates[i][1],rates[i][5]])
                     close_price.append(rates[i][4])
 
                 data = np.array(data)
@@ -91,7 +91,7 @@ else:
                         print("Please wait for the next opening of 4H candle sticks")
                         allow_trade = False
 
-                    data=[[rates[0][0],rates[0][1],rates[0][5],rates[0][6]]]
+                    data=[[rates[0][0],rates[0][1],rates[0][5]]]
                     close_price = [rates[0][4]]
                     data = np.array(data)
                     print(data)
@@ -112,10 +112,10 @@ else:
                     print("Stage 2")
                     if(mt5.positions_total() == 0):
                         if(allow_trade):
-                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.001):
+                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.0008):
                                 result = mt5.Buy(symbol=target_market[n],volume=lot)
                                 print(result)
-                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.001):
+                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.0008):
                                 result = mt5.Sell(symbol=target_market[n],volume=lot)
                                 print(result)
                         else:
@@ -187,10 +187,10 @@ else:
                         if(market_exist == False):
                             print("Stage 4")
                             if(allow_trade):
-                                if(y_pred[0] > price and abs(price - y_pred[0]) > 0.001):
+                                if(y_pred[0] > price and abs(price - y_pred[0]) > 0.0008):
                                     result = mt5.Buy(symbol=target_market[n],volume=lot)
                                     print(result)
-                                elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.001):
+                                elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.0008):
                                     result = mt5.Sell(symbol=target_market[n],volume=lot)
                                     print(result)
                             else:
