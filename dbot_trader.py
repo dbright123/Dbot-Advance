@@ -9,7 +9,6 @@ print("MetaTrader5 package version: ",mt5.__version__)
 
 
 
-
 lot = 0.01
 
 target_market = ["GBPUSD","USDCAD","AUDUSD","USDCHF","NZDUSD","EURUSD"]
