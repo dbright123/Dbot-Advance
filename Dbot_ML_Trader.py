@@ -1,9 +1,9 @@
 import MetaTrader5 as mt5
 import numpy as np
-import time
-from datetime import datetime,timezone
-from sklearn.ensemble import RandomForestRegressor
 
+import time
+#from datetime import datetime,timezone
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
@@ -52,7 +52,7 @@ def learning_data():
             sc_xs.append(sc_x)
             sc_ys.append(sc_y)
 
-            regressor = RandomForestRegressor(n_estimators=400,verbose=1, n_jobs=10)
+            regressor = RandomForestRegressor(n_estimators=400,verbose=1, n_jobs=-1)
             regressor.fit(x_train,y_train)
 
             score = regressor.score(
@@ -63,8 +63,10 @@ def learning_data():
             if(score <= 0.95):
                 print(target," has been trained, but it seems it will be better if attention is giving to the model")
             models.append(regressor)
-    except:
-        print("An error occured dorring the process of learning, trying the process again")
+            print("Done with ",target)
+            time.sleep(10)
+    except Exception as e:
+        print("An error occured dorring the process of learning, trying the process again ",e)
         time.sleep(10)
         learning_data()
 
