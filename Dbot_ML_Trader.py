@@ -26,8 +26,13 @@ print("Please wait while i learn from the data showing from your broker")
 def learning_data():
     try:
         for target in target_market:
-            rates = mt5.copy_rates_from_pos(target, mt5.TIMEFRAME_H4, 0, 99999)  
-            print(rates.shape)
+            while(True):
+                rates = mt5.copy_rates_from_pos(target, mt5.TIMEFRAME_H4, 0, 99999)  
+                print(rates.shape)
+                time.sleep(5)
+                if(rates.shape != None): 
+                    print("Data gotten from metatrader is NoneType, trying again...")
+                    break
             print("learning from ",target," currently")
             x = []
             y = []
@@ -113,11 +118,11 @@ else:
                 print("stage 1")
                 print(r_squared, " is the current prediction model performance")
                 
-                if(r_squared <= 0.90):
+                if(r_squared <= 0.95):
                     print(target_market[n]+" will need re-training, please train the model again or check program for error, the prediction is too poor")
                     print("checking other market")
                     learning_data()
-                    time.sleep(20)
+                    time.sleep(5)
                 else:
                 # Get the current datetime in UTC
                     rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 1)
