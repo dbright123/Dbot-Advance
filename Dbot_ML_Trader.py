@@ -31,7 +31,7 @@ def learning_data():
                 print(rates.shape)
                 time.sleep(5)
                 if(rates.shape != None): 
-                    print("Data gotten from metatrader is NoneType, trying again...")
+                    #print("Data gotten from metatrader is NoneType, trying again...")
                     break
             print("learning from ",target," currently")
             x = []
