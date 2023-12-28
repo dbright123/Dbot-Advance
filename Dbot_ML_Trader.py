@@ -29,10 +29,12 @@ def learning_data():
             while(True):
                 rates = mt5.copy_rates_from_pos(target, mt5.TIMEFRAME_H4, 0, 99999)  
                 print(rates.shape)
-                time.sleep(5)
                 if(rates.shape != None): 
-                    #print("Data gotten from metatrader is NoneType, trying again...")
+                    print("Got successful in the fetching data of ",target)
                     break
+                else:
+                    print("Data gotten from metatrader is NoneType, trying again...")
+                    time.sleep(5)
             print("learning from ",target," currently")
             x = []
             y = []
