@@ -139,7 +139,7 @@ else:
 
                     if(rate1h[0][0] != rates[0][0]):
                         print("Please wait for the next opening of 4H candle sticks")
-                        allow_trade = False
+                        #allow_trade = False
 
                     data=[[rates[0][0],rates[0][1],rates[0][5]]]
                     close_price = [rates[0][4]]
@@ -162,10 +162,10 @@ else:
                     print("Stage 2")
                     if(mt5.positions_total() == 0):
                         if(allow_trade):
-                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.0008):
+                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.0005):
                                 result = mt5.Buy(symbol=target_market[n],volume=lot)
                                 print(result)
-                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.0008):
+                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.0005):
                                 result = mt5.Sell(symbol=target_market[n],volume=lot)
                                 print(result)
                         else:
