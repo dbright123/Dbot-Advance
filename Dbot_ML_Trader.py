@@ -46,7 +46,12 @@ def learning_data():
             x = np.array(x)
             y = np.array(y)
 
-            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.002, random_state=0)
+            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.002, random_state=42)
+            #x_train = x[:-100,:]
+            #y_train = y[:-100]
+
+            x_test = x[-100:,:]
+            y_test = y[-100:]
             sc_x = StandardScaler()
             sc_y = StandardScaler()
 
@@ -121,7 +126,7 @@ else:
                 print("stage 1")
                 print(r_squared, " is the current prediction model performance")
                 
-                if(r_squared <= 0.95):
+                if(r_squared <= 0.80):
                     print(target_market[n]+" will need re-training, please train the model again or check program for error, the prediction is too poor")
                     print("checking other market")
                     learning_data()
@@ -162,10 +167,10 @@ else:
                     print("Stage 2")
                     if(mt5.positions_total() == 0):
                         if(allow_trade):
-                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.0005):
+                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.0001):
                                 result = mt5.Buy(symbol=target_market[n],volume=lot)
                                 print(result)
-                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.0005):
+                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.0001):
                                 result = mt5.Sell(symbol=target_market[n],volume=lot)
                                 print(result)
                         else:
