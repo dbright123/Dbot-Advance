@@ -46,9 +46,9 @@ def learning_data():
             x = np.array(x)
             y = np.array(y)
 
-            x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.002, random_state=42)
-            #x_train = x[:-100,:]
-            #y_train = y[:-100]
+            #x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.002, random_state=42)
+            x_train = x[:-100,:]
+            y_train = y[:-100]
 
             x_test = x[-100:,:]
             y_test = y[-100:]
