@@ -19,7 +19,7 @@ sc_xs = []
 sc_ys = []
 
 n = 0 # counter variable
-refreshrate = 10
+refreshrate = 20
 
 print("Please wait while i learn from the data showing from your broker")
 
