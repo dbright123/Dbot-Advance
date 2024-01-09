@@ -13,7 +13,7 @@ print("MetaTrader5 package version: ",mt5.__version__)
 
 lot = 0.01
 
-target_market = ["GBPUSD","USDCAD","AUDUSD","EURUSD"]
+target_market = ["EURGBP","USDCAD","AUDUSD","EURUSD"]
 models = []
 sc_xs = []
 sc_ys = []
@@ -62,8 +62,7 @@ def learning_data():
             x_test = sc_x.transform(x_test)
 
             print(x_test.shape)
-            sc_xs.append(sc_x)
-            sc_ys.append(sc_y)
+            
 
             regressor = RandomForestRegressor(n_estimators=400,verbose=1, n_jobs=-1)
             regressor.fit(x_train,y_train)
@@ -73,9 +72,13 @@ def learning_data():
                 sc_y.transform(y_test.reshape((len(y_test),1))).reshape(-1)
             )
             print(score)
-            if(score <= 0.95):
+            
+            if(score <= 0.80):
                 print(target," has been trained, but it seems it will be better if attention is giving to the model")
-            models.append(regressor)
+            else:
+                models.append(regressor)
+                sc_xs.append(sc_x)
+                sc_ys.append(sc_y)
             print("Done with ",target)
             time.sleep(10)
     except Exception as e:
@@ -126,7 +129,7 @@ else:
                 print("stage 1")
                 print(r_squared, " is the current prediction model performance")
                 
-                if(r_squared <= 0.95):
+                if(r_squared <= 0.80):
                     print(target_market[n]+" will need re-training, please train the model again or check program for error, the prediction is too poor")
                     print("checking other market")
                     learning_data()
@@ -242,10 +245,10 @@ else:
                         if(market_exist == False):
                             print("Stage 4")
                             if(allow_trade):
-                                if(y_pred[0] > price and abs(price - y_pred[0]) > 0.0008):
+                                if(y_pred[0] > price and abs(price - y_pred[0]) > 0.0001):
                                     result = mt5.Buy(symbol=target_market[n],volume=lot)
                                     print(result)
-                                elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.0008):
+                                elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.0001):
                                     result = mt5.Sell(symbol=target_market[n],volume=lot)
                                     print(result)
                             else:
