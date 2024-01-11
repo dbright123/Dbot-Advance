@@ -20,6 +20,7 @@ sc_ys = []
 
 n = 0 # counter variable
 refreshrate = 20
+sl = 0
 
 print("Please wait while i learn from the data showing from your broker")
 
@@ -197,6 +198,7 @@ else:
                                     #modify the market
                                     sl = target_order.price_current + target_order.price_open
                                     sl = sl/2.0
+
                                     request = {
                                         "action": mt5.TRADE_ACTION_SLTP,
                                         "symbol": target_order.symbol,
@@ -206,7 +208,27 @@ else:
                                     }
                                     result=mt5.order_send(request)
                                     print(result)
+                                else:
+                                    #changing of takeprofit incase of sudden volume changes
+
+                                    order_symbols = mt5.positions_get()
+                                    for order_symbol in order_symbols:
+                                        if(target_market[n] == order_symbol.symbol):
+                                            print("seen")
+                                            if(float(target_order.tp) != float(y_pred[0])):
+                                                request = {
+                                                    "action": mt5.TRADE_ACTION_SLTP,
+                                                    "symbol": target_order.symbol,
+                                                    "sl": float(target_order.sl),
+                                                    "tp": y_pred[0],
+                                                    "position": target_order.ticket
+                                                }
+                                                result=mt5.order_send(request)
+                                                print(result)
+                                            break
+
                                 
+
                                 if(target_order.type == 0 and y_pred[0] < target_order.price_open):
                                     result = mt5.Close(target_order.symbol)
                                     if(y_pred[0] < target_order.price_current):
@@ -220,26 +242,6 @@ else:
                                     else:
                                         print("price unstable")
                                 print(result)
-                                #changing of takeprofit incase of sudden volume changes
-
-                                order_symbols = mt5.positions_get()
-                                for order_symbol in order_symbols:
-                                    if(target_market[n] == order_symbol.symbol):
-                                        
-
-                                        print("seen")
-                                        if(float(target_order.tp) != float(y_pred[0])):
-                                            request = {
-                                                "action": mt5.TRADE_ACTION_SLTP,
-                                                "symbol": target_order.symbol,
-                                                "sl": float(target_order.sl),
-                                                "tp": y_pred[0],
-                                                "position": target_order.ticket
-                                            }
-                                            result=mt5.order_send(request)
-                                            print(result)
-                                        break
-
                                 break
                         
                         if(market_exist == False):
