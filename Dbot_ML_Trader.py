@@ -29,7 +29,7 @@ def learning_data():
         for target in target_market:
             while(True):
                 try:
-                    rates = mt5.copy_rates_from_pos(target, mt5.TIMEFRAME_H4, 0, 50000) 
+                    rates = mt5.copy_rates_from_pos(target, mt5.TIMEFRAME_H4, 0, 50000)   
                     print(rates.shape)
                     print("Got successful in the fetching data of ",target)
                     break 
@@ -171,10 +171,10 @@ else:
                     print("Stage 2")
                     if(mt5.positions_total() == 0):
                         if(allow_trade):
-                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.001):
+                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.002):
                                 result = mt5.Buy(symbol=target_market[n],volume=lot)
                                 print(result)
-                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.001):
+                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.002):
                                 result = mt5.Sell(symbol=target_market[n],volume=lot)
                                 print(result)
                         else:
@@ -247,10 +247,10 @@ else:
                         if(market_exist == False):
                             print("Stage 4")
                             if(allow_trade):
-                                if(y_pred[0] > price and abs(price - y_pred[0]) > 0.001):
+                                if(y_pred[0] > price and abs(price - y_pred[0]) > 0.002):
                                     result = mt5.Buy(symbol=target_market[n],volume=lot)
                                     print(result)
-                                elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.001):
+                                elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.002):
                                     result = mt5.Sell(symbol=target_market[n],volume=lot)
                                     print(result)
                             else:
