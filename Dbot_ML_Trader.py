@@ -5,11 +5,10 @@ import time
 #from datetime import datetime,timezone
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
-
+from sklearn.cluster import KMeans
 
 print("MetaTrader5 package author: ",mt5.__author__)
 print("MetaTrader5 package version: ",mt5.__version__)
-
 
 lot = 0.01
 
@@ -87,6 +86,16 @@ def learning_data():
         time.sleep(10)
         learning_data()
 
+def s_and_d(close_price,k = 6):
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(close_price)
+    labels = kmeans.labels_
+    centroids = kmeans.cluster_centers_
+    centroids = np.sort(centroids, axis=0)
+    print(centroids)
+    return centroids
+
+
 if not mt5.initialize():
     print('Initialization failed, check internet connection. You must have Meta Trader 5 installed.')
 else:
@@ -107,6 +116,14 @@ else:
                 model = models[n]
                 sc_x = sc_xs[n]
                 sc_y = sc_ys[n]
+
+                trates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 100)
+                print(trates.shape)
+                for i in range(len(rates)):
+                    close_price.append(rates[i][4])
+
+                t_close_price = np.array(close_price)
+
 
                 rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 100)
                 print(rates.shape)
