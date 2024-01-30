@@ -40,7 +40,7 @@ def learning_data():
             x = []
             y = []
             for i in range(len(rates)):
-                x.append([rates[i][0],rates[i][1],rates[i][5]])
+                x.append([rates[i][0],rates[i][1],rates[i][5],rates[i][6]])
                 y.append(rates[i][4])
 
             x = np.array(x)
@@ -132,7 +132,7 @@ else:
                 close_price = []
 
                 for i in range(len(rates)):
-                    data.append([rates[i][0],rates[i][1],rates[i][5]])
+                    data.append([rates[i][0],rates[i][1],rates[i][5],rates[i][6]])
                     close_price.append(rates[i][4])
 
                 data = np.array(data)
@@ -167,7 +167,7 @@ else:
                         print("Please wait for the next opening of 4H candle sticks")
                         #allow_trade = False
 
-                    data=[[rates[0][0],rates[0][1],rates[0][5]]]
+                    data=[[rates[0][0],rates[0][1],rates[0][5],rates[i][6]]]
                     close_price = [rates[0][4]]
                     data = np.array(data)
                     print(data)
@@ -287,8 +287,9 @@ else:
             else:
                 print("Please make sure metatrade 5 has internet and Algo Trade is Turn On")
                 time.sleep(refreshrate)
-        except:
+        except Exception as e:
             print("Sth went wrong with ",target_market[n])
+            print(e)
             if(n < len(target_market) - 1):
                 n += 1
             else:
