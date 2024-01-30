@@ -147,7 +147,7 @@ else:
                 print("stage 1")
                 print(r_squared, " is the current prediction model performance")
                 
-                if(r_squared <= 0.80):
+                if(r_squared < 0.80):
                     print(target_market[n]+" will need re-training, please train the model again or check program for error, the prediction is too poor")
                     print("checking other market")
                     learning_data()
