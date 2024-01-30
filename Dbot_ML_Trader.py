@@ -119,6 +119,7 @@ else:
                 sc_y = sc_ys[n]
 
                 "Running close price in comparisn to supply and demand zone"
+                '''
                 t_close_price = []
                 trates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_M15, 0, 1000)
                 print(trates.shape)
@@ -127,6 +128,7 @@ else:
 
                 t_close_price = np.array(t_close_price)
                 s_and_d(t_close_price)
+                '''
                 "Still on the progress of system design"
 
                 rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 100)
