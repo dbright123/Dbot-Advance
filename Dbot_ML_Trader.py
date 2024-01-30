@@ -26,6 +26,7 @@ print("Please wait while i learn from the data showing from your broker")
 def learning_data():
     try:
         for target in target_market:
+            rates = []
             while(True):
                 try:
                     rates = mt5.copy_rates_from_pos(target, mt5.TIMEFRAME_H4, 0, 50000)   
@@ -64,7 +65,7 @@ def learning_data():
             print(x_test.shape)
             
 
-            regressor = RandomForestRegressor(n_estimators=400,verbose=1, n_jobs=-1)
+            regressor = RandomForestRegressor(n_estimators=400,verbose=1, n_jobs=-1, random_state=42)
             regressor.fit(x_train,y_train)
 
             score = regressor.score(
@@ -117,13 +118,16 @@ else:
                 sc_x = sc_xs[n]
                 sc_y = sc_ys[n]
 
-                trates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 100)
+                "Running close price in comparisn to supply and demand zone"
+                t_close_price = []
+                trates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_M15, 0, 1000)
                 print(trates.shape)
-                for i in range(len(rates)):
-                    close_price.append(rates[i][4])
+                for i in range(len(trates)):
+                    t_close_price.append(trates[i][4])
 
-                t_close_price = np.array(close_price)
-
+                t_close_price = np.array(t_close_price)
+                s_and_d(t_close_price)
+                "Still on the progress of system design"
 
                 rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 100)
                 print(rates.shape)
