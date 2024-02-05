@@ -188,10 +188,10 @@ else:
                     print("Stage 2")
                     if(mt5.positions_total() == 0):
                         if(allow_trade):
-                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.002):
+                            if(y_pred[0] > price and abs(price - y_pred[0]) > 0.001):
                                 result = mt5.Buy(symbol=target_market[n],volume=lot)
                                 print(result)
-                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.002):
+                            elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.001):
                                 result = mt5.Sell(symbol=target_market[n],volume=lot)
                                 print(result)
                         else:
@@ -264,10 +264,10 @@ else:
                         if(market_exist == False):
                             print("Stage 4")
                             if(allow_trade):
-                                if(y_pred[0] > price and abs(price - y_pred[0]) > 0.002):
+                                if(y_pred[0] > price and abs(price - y_pred[0]) > 0.001):
                                     result = mt5.Buy(symbol=target_market[n],volume=lot)
                                     print(result)
-                                elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.002):
+                                elif(y_pred[0] < price and abs(price - y_pred[0]) > 0.001):
                                     result = mt5.Sell(symbol=target_market[n],volume=lot)
                                     print(result)
                             else:
