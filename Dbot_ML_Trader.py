@@ -41,7 +41,7 @@ def learning_data():
             x = []
             y = []
             for i in range(len(rates)):
-                x.append([rates[i][0],rates[i][1],rates[i][5],rates[i][6]])
+                x.append([rates[i][0],rates[i][1],rates[i][5]])
                 y.append(rates[i][4])
 
             x = np.array(x)
@@ -74,7 +74,7 @@ def learning_data():
             )
             print(score)
             
-            if(score <= 0.80):
+            if(score <= 0.50):
                 print(target," has been trained, but it seems it will be better if attention is giving to the model")
             else:
                 models.append(regressor)
@@ -89,7 +89,7 @@ def learning_data():
 
 def s_and_d(close_price,k = 6):
     kmeans = KMeans(n_clusters=k, random_state=42)
-    kmeans.fit(close_price)
+    kmeans.fit(close_price.reshape((len(close_price),1)))
     labels = kmeans.labels_
     centroids = kmeans.cluster_centers_
     centroids = np.sort(centroids, axis=0)
@@ -128,6 +128,7 @@ else:
 
                 t_close_price = np.array(t_close_price)
                 cluster = s_and_d(t_close_price)
+                print("Cluster value")
                 print(cluster)
                 
                 "Still on the progress of system design"
@@ -139,7 +140,7 @@ else:
                 close_price = []
 
                 for i in range(len(rates)):
-                    data.append([rates[i][0],rates[i][1],rates[i][5],rates[i][6]])
+                    data.append([rates[i][0],rates[i][1],rates[i][5]])
                     close_price.append(rates[i][4])
 
                 data = np.array(data)
@@ -154,7 +155,7 @@ else:
                 print("stage 1")
                 print(r_squared, " is the current prediction model performance")
                 
-                if(r_squared < 0.80):
+                if(r_squared < 0.50):
                     print(target_market[n]+" will need re-training, please train the model again or check program for error, the prediction is too poor")
                     print("checking other market")
                     learning_data()
@@ -166,7 +167,7 @@ else:
                     
                     allow_trade = True
 
-                    data=[[rates[0][0],rates[0][1],rates[0][5],rates[0][6]]]
+                    data=[[rates[0][0],rates[0][1],rates[0][5]]]
                     close_price = [rates[0][4]]
                     data = np.array(data)
                     print(data)
