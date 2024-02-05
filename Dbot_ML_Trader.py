@@ -93,7 +93,7 @@ def s_and_d(close_price,k = 6):
     labels = kmeans.labels_
     centroids = kmeans.cluster_centers_
     centroids = np.sort(centroids, axis=0)
-    print(centroids)
+    #print(centroids)
     return centroids
 
 
@@ -119,7 +119,7 @@ else:
                 sc_y = sc_ys[n]
 
                 "Running close price in comparisn to supply and demand zone"
-                '''
+                
                 t_close_price = []
                 trates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_M15, 0, 1000)
                 print(trates.shape)
@@ -127,8 +127,9 @@ else:
                     t_close_price.append(trates[i][4])
 
                 t_close_price = np.array(t_close_price)
-                s_and_d(t_close_price)
-                '''
+                cluster = s_and_d(t_close_price)
+                print(cluster)
+                
                 "Still on the progress of system design"
 
                 rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 100)
@@ -162,16 +163,8 @@ else:
                 # Get the current datetime in UTC
                     rates = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H4, 0, 1)
                     print(rates)
-
-                    rate1h = mt5.copy_rates_from_pos(target_market[n], mt5.TIMEFRAME_H1, 0, 1)
-
-                    print(rate1h[0][0], " compared to ", rates[0][0])
                     
                     allow_trade = True
-
-                    if(rate1h[0][0] != rates[0][0]):
-                        print("Please wait for the next opening of 4H candle sticks")
-                        #allow_trade = False
 
                     data=[[rates[0][0],rates[0][1],rates[0][5],rates[i][6]]]
                     close_price = [rates[0][4]]
