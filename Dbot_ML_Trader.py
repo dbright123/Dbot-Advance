@@ -166,7 +166,7 @@ else:
                     
                     allow_trade = True
 
-                    data=[[rates[0][0],rates[0][1],rates[0][5],rates[i][6]]]
+                    data=[[rates[0][0],rates[0][1],rates[0][5],rates[0][6]]]
                     close_price = [rates[0][4]]
                     data = np.array(data)
                     print(data)
