@@ -30,7 +30,7 @@ while True:
     impact_color = ['greenFont','redFont','blackFont']
     order_operation = False
     vote_decision = 0
-    strength = 0# 0 is neutral 1 is strong and 2 is weak
+    strength = []# 0 is neutral 1 is strong and 2 is weak
 
     hour = 0
     min = 0
@@ -69,33 +69,21 @@ while True:
                     if hour < 10:
                         if "0"+str(hour) == d_time[0]:
                             if "0"+str(min) == d_time[1]:
-                                pass
+                                for i in range(len(impact_color)):
+                                    t_actual = str(target_news[4]).split(impact_color[i])
+                                    if len(t_actual) <= 1 : 
+                                        print("The news is still neutral at the moment") 
+                                    else:
+                                        if i == 0:
+                                            print(t_currency, " is very strong and can be used for quick trading")
+                                            break
+                                        elif i == 1:
+                                            print(t_currency, " is very weak and can be used for quick trading")
+                                            break
+                                        else:
+                                            print(t_currency," is neutral, no point trading with it")
+                                            break
                             elif str(min) == d_time[1]:
-                                pass
-                            else:
-                                print("Please wait on some minutes")
-                                print(t_time)
-                        pass
-                    else:
-                        if str(hour) == d_time[0]:
-                            if "0"+str(min) == d_time[1]:
-                                pass
-                            elif str(min) == d_time[1]:
-                                pass
-                            else:
-                                print("Please wait on some minutes")
-                                print(t_time)
-                        pass
-
-                
-                
-                '''
-                for target in currency:
-                    if target == t_currency:
-                        print("currency is among target, please wait while i check for information on the currency")
-                        if hour == t_hour:
-                            if min >= t_min:
-                                print("The news market is active")
                                 for i in range(len(impact_color)):
                                     t_actual = str(target_news[4]).split(impact_color[i])
                                     if len(t_actual) <= 1 : 
@@ -111,16 +99,49 @@ while True:
                                             print(t_currency," is neutral, no point trading with it")
                                             break
                             else:
-                                print("Please wait for just few minutes for the market actual value to be updated")
-                        else:
-                            print("The news market is not active")
-                    break
-                '''
+                                print("Please wait on some minutes")
+                                print(t_time)
+                        
+                    else:
+                        if str(hour) == d_time[0]:
+                            if "0"+str(min) == d_time[1]:
+                                for i in range(len(impact_color)):
+                                    t_actual = str(target_news[4]).split(impact_color[i])
+                                    if len(t_actual) <= 1 : 
+                                        print("The news is still neutral at the moment") 
+                                    else:
+                                        if i == 0:
+                                            print(t_currency, " is very strong and can be used for quick trading")
+                                            break
+                                        elif i == 1:
+                                            print(t_currency, " is very weak and can be used for quick trading")
+                                            break
+                                        else:
+                                            print(t_currency," is neutral, no point trading with it")
+                                            break
+                            elif str(min) == d_time[1]:
+                                for i in range(len(impact_color)):
+                                    t_actual = str(target_news[4]).split(impact_color[i])
+                                    if len(t_actual) <= 1 : 
+                                        print("The news is still neutral at the moment") 
+                                    else:
+                                        if i == 0:
+                                            print(t_currency, " is very strong and can be used for quick trading")
+                                            break
+                                        elif i == 1:
+                                            print(t_currency, " is very weak and can be used for quick trading")
+                                            break
+                                        else:
+                                            print(t_currency," is neutral, no point trading with it")
+                                            break
+                            else:
+                                print("Please wait on some minutes")
+                                print(t_time)         
 
-    if(i == len(news) - 1 and order_operation):
-        #Monitor and Calculate type of trade and also pull out after 5 mins count
-        pass
-    time.sleep(20)
+        if(i == len(news) - 1 and order_operation):
+            #Monitor and Calculate type of trade and also pull out after 5 mins count
+            pass
+        time.sleep(20)
 
 
 
