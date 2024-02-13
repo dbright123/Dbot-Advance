@@ -27,9 +27,8 @@ while True:
 
 
     currency = ['USDCAD','USDJPY','EURUSD','GBPUSD','XAUUSD','AUDUSD']
-    impact_color = ['greenFont','redFont','blackFont']
+    impact_color = ['blackFont','greenFont','redFont']
     order_operation = False
-    vote_decision = 0
     strength = []# 0 is neutral 1 is strong and 2 is weak
 
     hour = 0
@@ -51,13 +50,12 @@ while True:
         t_currency = str(target_news[1]).split(' ')
         t_currency = t_currency[-1].replace("</td>","")
         print(t_currency)
-        if t_currency == "USD":
+        if t_currency == "USD":#the currency i am concerned about
             t_impact = str(target_news[2]).split("High Volatility Expected")
             if len(t_impact) <= 1 : 
-                #print("This news dooesn't have the impact i am looking for") 
-                pass
+                print("This news dooesn't have the impact i am looking for") 
             else: 
-                #print("News with high impact detected for ", t_currency)
+                print("News with high impact detected for ", t_currency)
                 t_time = str(target_news[0]).replace('<td class="first left time js-time" title="">','')
                 t_time = t_time.replace("</td>",'')
                 d_time = t_time.split(":")
@@ -74,11 +72,15 @@ while True:
                                     if len(t_actual) <= 1 : 
                                         print("The news is still neutral at the moment") 
                                     else:
-                                        if i == 0:
+                                        if i == 1:
                                             print(t_currency, " is very strong and can be used for quick trading")
+                                            order_operation = True
+                                            strength.append(i)
                                             break
-                                        elif i == 1:
+                                        elif i == 2:
                                             print(t_currency, " is very weak and can be used for quick trading")
+                                            order_operation = True
+                                            strength.append(i)
                                             break
                                         else:
                                             print(t_currency," is neutral, no point trading with it")
@@ -89,11 +91,15 @@ while True:
                                     if len(t_actual) <= 1 : 
                                         print("The news is still neutral at the moment") 
                                     else:
-                                        if i == 0:
+                                        if i == 1:
                                             print(t_currency, " is very strong and can be used for quick trading")
+                                            order_operation = True
+                                            strength.append(i)
                                             break
-                                        elif i == 1:
+                                        elif i == 2:
                                             print(t_currency, " is very weak and can be used for quick trading")
+                                            order_operation = True
+                                            strength.append(i)
                                             break
                                         else:
                                             print(t_currency," is neutral, no point trading with it")
@@ -110,11 +116,15 @@ while True:
                                     if len(t_actual) <= 1 : 
                                         print("The news is still neutral at the moment") 
                                     else:
-                                        if i == 0:
+                                        if i == 1:
                                             print(t_currency, " is very strong and can be used for quick trading")
+                                            order_operation = True
+                                            strength.append(i)
                                             break
-                                        elif i == 1:
+                                        elif i == 2:
                                             print(t_currency, " is very weak and can be used for quick trading")
+                                            order_operation = True
+                                            strength.append(i)
                                             break
                                         else:
                                             print(t_currency," is neutral, no point trading with it")
@@ -125,11 +135,15 @@ while True:
                                     if len(t_actual) <= 1 : 
                                         print("The news is still neutral at the moment") 
                                     else:
-                                        if i == 0:
+                                        if i == 1:
                                             print(t_currency, " is very strong and can be used for quick trading")
+                                            order_operation = True
+                                            strength.append(i)
                                             break
-                                        elif i == 1:
+                                        elif i == 2:
                                             print(t_currency, " is very weak and can be used for quick trading")
+                                            order_operation = True
+                                            strength.append(i)
                                             break
                                         else:
                                             print(t_currency," is neutral, no point trading with it")
@@ -140,7 +154,37 @@ while True:
 
         if(i == len(news) - 1 and order_operation):
             #Monitor and Calculate type of trade and also pull out after 5 mins count
-            pass
+            strong  = 0
+            weak = 0
+            for i in range(len(strength)):
+                #Strength counting 
+                if strength[i] == 1:
+                    strong += 1
+                elif strength[i] == 2:
+                    weak += 1
+                
+            if strong > weak:
+                print("USD is strong, and ready to trade")
+                for i in range(len(currency)):
+                    if i <= 1:
+                        print("Buy market")
+                    else:
+                        print("Sell market")
+            elif strong < weak:
+                print("USD is weak, and ready to trade")
+                for i in range(len(currency)):
+                    if i > 1:
+                        print("Buy market")
+                    else:
+                        print("Sell market")
+            else:
+                print("USD today news is a waste of time")
+            
+            time.sleep(3 * 65)
+            ## Closing all the market
+
+            order_operation = False
+            strength = []
         time.sleep(20)
 
 
