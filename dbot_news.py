@@ -177,7 +177,7 @@ while True:
                     if i > 1:
                         print("Buy market ", currency[i])
                     else:
-                        print("Sell market", currency[i])\
+                        print("Sell market", currency[i])
             else:
                 print("USD today news is a waste of time")
             
