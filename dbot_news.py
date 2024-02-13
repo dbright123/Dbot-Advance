@@ -162,27 +162,30 @@ while True:
                     strong += 1
                 elif strength[i] == 2:
                     weak += 1
-                
+            print("total number of strong news ",strong)   
+            print("total number of weak news ",weak)   
             if strong > weak:
                 print("USD is strong, and ready to trade")
                 for i in range(len(currency)):
                     if i <= 1:
-                        print("Buy market")
+                        print("Buy market", currency[i])
                     else:
-                        print("Sell market")
+                        print("Sell market", currency[i])
             elif strong < weak:
                 print("USD is weak, and ready to trade")
                 for i in range(len(currency)):
                     if i > 1:
-                        print("Buy market")
+                        print("Buy market ", currency[i])
                     else:
-                        print("Sell market")
+                        print("Sell market", currency[i])\
             else:
                 print("USD today news is a waste of time")
             
             time.sleep(3 * 65)
             ## Closing all the market
-
+            print("All market closed")
+            for market in currency:
+                print(market, " closed")
             order_operation = False
             strength = []
         time.sleep(20)
