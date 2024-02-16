@@ -7,17 +7,25 @@ from mt5linux import MetaTrader5
 #import MetaTrader5 as mt5
 
 mt5 = MetaTrader5()
+lot = 0.01
 
 def initialize():
     while True:
-        url = f"https://ng.investing.com/economic-calendar/"
-        response = requests.get(url)
-        soup = BeautifulSoup(response.content, "html.parser")
-
-        news = soup.find(id="economicCalendarData", class_="genTbl closedTbl ecoCalTbl persistArea js-economic-table")
-        news = news.find("tbody")
-        news = news.find_all("tr",class_="js-event-item")
-        return(news)
+        try:
+            url = f"https://ng.investing.com/economic-calendar/"
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, "html.parser")
+            news = soup.find(id="economicCalendarData", class_="genTbl closedTbl ecoCalTbl persistArea js-economic-table")
+            news = news.find("tbody")
+            news = news.find_all("tr",class_="js-event-item")
+            if news is not None:
+                return(news)
+            else:
+                time.sleep(1)
+                print("Try again... on news website")
+        except Exception as e:
+            time.sleep(1)
+            print("Try again... on news website ", e)
 
 
 
@@ -37,17 +45,8 @@ hour = 14
 min = 30
 
 while True:
-    try: 
-        news = initialize()
-    except Exception as e:
-        print(e)
-        webbrowser.open("https://ng.investing.com/economic-calendar/", new = 1)
-        print("please wait..., as i test website on browser")
-        time.sleep(5)
-        news = initialize()
-
-
-    
+    news = initialize()
+      
     # Get the current local time
     now = datetime.datetime.now()
     # Extract hour and minute
@@ -184,15 +183,23 @@ while True:
                 for i in range(len(currency)):
                     if i <= 1:
                         print("Buy market", currency[i])
+                        result = mt5.Buy(symbol=currency[i],volume=lot)
+                        print(result)
                     else:
                         print("Sell market", currency[i])
+                        result = mt5.Sell(symbol=currency[i],volume=lot)
+                        print(result)
             elif weak == len(strength):
                 print("USD is weak, and ready to trade")
                 for i in range(len(currency)):
                     if i > 1:
                         print("Buy market ", currency[i])
+                        result = mt5.Buy(symbol=currency[i],volume=lot)
+                        print(result)
                     else:
                         print("Sell market", currency[i])
+                        result = mt5.Sell(symbol=currency[i],volume=lot)
+                        print(result)
             else:
                 print("USD today news is a waste of time, or very risky")
                 monitor = False
@@ -202,11 +209,35 @@ while True:
                     time.sleep(1)
                     print("Please wait..., while i make sure break even is given to market ", i)
                     #Edit the prices
+                    order_symbols = mt5.positions_get()
+                    for target_order in order_symbols:
+                        for target_market in currency:
+                            print(target_market)
+                            if(target_market == target_order.symbol):
+                                print("seen")
+                                #Edit market over here for change in sl
+                                print(target_order)
+                                open_price = target_order.price_open
+                                if(target_order.profit >= target_order.volume * 80  and target_order.sl == 0):
+                                    #modify the market
+                                    sl = target_order.price_current + target_order.price_open
+                                    sl = sl/2.0
+
+                                    request = {
+                                        "action": mt5.TRADE_ACTION_SLTP,
+                                        "symbol": target_order.symbol,
+                                        "sl": sl,
+                                        "tp": float(target_order.tp),
+                                        "position": target_order.ticket
+                                    }
+                                    result=mt5.order_send(request)
+                                    print(result)
 
                 ## Closing all the market
                 for market in currency:
                     print(market, " closed")
-                
+                    result = mt5.Close(market)
+                    print(result)
                 print("All market closed for the day")
             order_operation = False
             strength = []
