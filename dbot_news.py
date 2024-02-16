@@ -3,17 +3,38 @@ from bs4 import BeautifulSoup
 import datetime
 import time
 import webbrowser
+from mt5linux import MetaTrader5
+#import MetaTrader5 as mt5
 
+mt5 = MetaTrader5()
 
 def initialize():
-    url = f"https://ng.investing.com/economic-calendar/"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
+    while True:
+        url = f"https://ng.investing.com/economic-calendar/"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.content, "html.parser")
 
-    news = soup.find(id="economicCalendarData", class_="genTbl closedTbl ecoCalTbl persistArea js-economic-table")
-    news = news.find("tbody")
-    news = news.find_all("tr",class_="js-event-item")
-    return(news)
+        news = soup.find(id="economicCalendarData", class_="genTbl closedTbl ecoCalTbl persistArea js-economic-table")
+        news = news.find("tbody")
+        news = news.find_all("tr",class_="js-event-item")
+        return(news)
+
+
+
+if mt5.initialize():
+    print("Connection is established")
+    print(mt5.terminal_info())
+    print(mt5.account_info())
+else:
+    print("Connection is not established")
+
+currency = ['USDCAD','USDJPY','EURUSD','GBPUSD','XAUUSD','AUDUSD']
+impact_color = ['blackFont','greenFont','redFont']
+order_operation = False
+strength = []# 0 is neutral 1 is strong and 2 is weak
+
+hour = 14
+min = 30
 
 while True:
     try: 
@@ -26,18 +47,12 @@ while True:
         news = initialize()
 
 
-    currency = ['USDCAD','USDJPY','EURUSD','GBPUSD','XAUUSD','AUDUSD']
-    impact_color = ['blackFont','greenFont','redFont']
-    order_operation = False
-    strength = []# 0 is neutral 1 is strong and 2 is weak
-
-    hour = 14
-    min = 30
+    
     # Get the current local time
     now = datetime.datetime.now()
     # Extract hour and minute
-    #hour = now.hour
-    #min = now.minute
+    hour = now.hour
+    min = now.minute
 
     print("current time:",hour,":",min)
     
