@@ -3,11 +3,11 @@ from bs4 import BeautifulSoup
 import datetime
 import time
 import webbrowser
-#from mt5linux import MetaTrader5
-import MetaTrader5 as mt5
+from mt5linux import MetaTrader5
+#import MetaTrader5 as mt5
 
 
-#mt5 = MetaTrader5()
+mt5 = MetaTrader5()
 lot = 0.01
 
 def initialize():
