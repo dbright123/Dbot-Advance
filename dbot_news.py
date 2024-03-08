@@ -8,7 +8,7 @@ import MetaTrader5 as mt5
 
 
 #mt5 = MetaTrader5()
-lot = 0.01
+lot = 0.02
 
 def initialize():
     while True:
@@ -65,9 +65,9 @@ while True:
         t_currency = t_currency[-1].replace("</td>","")
         
         if t_currency == "USD":#the currency i am concerned about
+            #print(target_news)
             t_impact = str(target_news[2]).split("High Volatility Expected")
             if len(t_impact) > 1 : 
-                #print("News with high impact detected for ", t_currency)
                 t_time = str(target_news[0]).replace('<td class="first left time js-time" title="">','')
                 t_time = t_time.replace("</td>",'')
                 d_time = t_time.split(":")
@@ -184,23 +184,103 @@ while True:
                 for i in range(len(currency)):
                     if i <= 1:
                         print("Buy market", currency[i])
-                        result = mt5.Buy(symbol=currency[i],volume=lot)
-                        print(result)
+                        try:
+                           result = mt5.Buy(symbol=currency[i],volume=lot)
+                           print(result)
+                        except:
+                           price = mt5.symbol_info_tick(currency[i]).ask
+                           #buying a market
+                           request = {
+                              "action": mt5.TRADE_ACTION_DEAL,
+                              "symbol": currency[i],
+                              "volume": lot,
+                              "type": mt5.ORDER_TYPE_BUY,
+                              "price": price,
+                              "sl": 0.0,
+                              "tp": 0.0,
+                              "deviation": 20,
+                              "magic": 0,
+                              "comment": "attempt 2",
+                              "type_time": mt5.ORDER_TIME_GTC,
+                              #"type_filling": mt5.ORDER_FILLING_RETURN,
+                           }
+                           result=mt5.order_send(request)
+                           print(result)
                     else:
                         print("Sell market", currency[i])
-                        result = mt5.Sell(symbol=currency[i],volume=lot)
-                        print(result)
+                        try:
+                           result = mt5.Sell(symbol=currency[i],volume=lot)
+                           print(result)
+                        except:
+                           price = mt5.symbol_info_tick(currency[i]).bid
+                           #buying a market
+                           request = {
+                              "action": mt5.TRADE_ACTION_DEAL,
+                              "symbol": currency[i],
+                              "volume": lot,
+                              "type": mt5.ORDER_TYPE_SELL,
+                              "price": price,
+                              "sl": 0.0,
+                              "tp": 0.0,
+                              "deviation": 20,
+                              "magic": 0,
+                              "comment": "attempt 2",
+                              "type_time": mt5.ORDER_TIME_GTC,
+                              #"type_filling": mt5.ORDER_FILLING_RETURN,
+                           }
+                           result=mt5.order_send(request)
+                           print(result)
             elif weak == len(strength):
                 print("USD is weak, and ready to trade")
                 for i in range(len(currency)):
                     if i > 1:
                         print("Buy market ", currency[i])
-                        result = mt5.Buy(symbol=currency[i],volume=lot)
-                        print(result)
+                        try:
+                           result = mt5.Buy(symbol=currency[i],volume=lot)
+                           print(result)
+                        except:
+                           price = mt5.symbol_info_tick(currency[i]).ask
+                           #buying a market
+                           request = {
+                              "action": mt5.TRADE_ACTION_DEAL,
+                              "symbol": currency[i],
+                              "volume": lot,
+                              "type": mt5.ORDER_TYPE_BUY,
+                              "price": price,
+                              "sl": 0.0,
+                              "tp": 0.0,
+                              "deviation": 20,
+                              "magic": 0,
+                              "comment": "attempt 2",
+                              "type_time": mt5.ORDER_TIME_GTC,
+                              #"type_filling": mt5.ORDER_FILLING_RETURN,
+                           }
+                           result=mt5.order_send(request)
+                           print(result)
                     else:
                         print("Sell market", currency[i])
-                        result = mt5.Sell(symbol=currency[i],volume=lot)
-                        print(result)
+                        try:
+                           result = mt5.Sell(symbol=currency[i],volume=lot)
+                           print(result)
+                        except:
+                           price = mt5.symbol_info_tick(currency[i]).bid
+                           #buying a market
+                           request = {
+                              "action": mt5.TRADE_ACTION_DEAL,
+                              "symbol": currency[i],
+                              "volume": lot,
+                              "type": mt5.ORDER_TYPE_SELL,
+                              "price": price,
+                              "sl": 0.0,
+                              "tp": 0.0,
+                              "deviation": 20,
+                              "magic": 0,
+                              "comment": "attempt 2",
+                              "type_time": mt5.ORDER_TIME_GTC,
+                              #"type_filling": mt5.ORDER_FILLING_RETURN,
+                           }
+                           result=mt5.order_send(request)
+                           print(result)
             else:
                 print("USD today news is a waste of time, or very risky")
                 monitor = False
