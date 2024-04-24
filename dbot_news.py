@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import datetime
 import time
-import webbrowser
+#import webbrowser
 #from mt5linux import MetaTrader5
 import MetaTrader5 as mt5
 
