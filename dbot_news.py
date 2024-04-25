@@ -28,7 +28,18 @@ def initialize():
             time.sleep(1)
             print("Try again... on news website ", e)
 
-
+def timeGMT():
+    while True:
+        url = f"https://ng.investing.com/economic-calendar/"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.content, "html.parser")
+        gmt = soup.find(id="timeZoneGmtOffsetFormatted")
+        gmt = str(gmt).replace('<span id="timeZoneGmtOffsetFormatted">','')
+        gmt = gmt.replace('</span>','')
+        gmt = gmt.replace('(','')
+        gmt = gmt.replace(')','')
+        print(gmt)
+        return gmt
 
 if mt5.initialize():
     print("Connection is established")
@@ -51,7 +62,12 @@ while True:
     # Get the current local time
     now = datetime.datetime.now()
     # Extract hour and minute
-    hour = now.hour
+    gmt = timeGMT()
+    t = gmt.split(" ")[1].replace('+',"").split(":")[0]
+    t = int(t)
+    print(t)
+ 
+    hour = now.hour + ( t - 1 )
     min = now.minute
 
     print("current time:",hour,":",min)
