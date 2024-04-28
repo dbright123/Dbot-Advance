@@ -30,16 +30,21 @@ def initialize():
 
 def timeGMT():
     while True:
-        url = f"https://ng.investing.com/economic-calendar/"
-        response = requests.get(url)
-        soup = BeautifulSoup(response.content, "html.parser")
-        gmt = soup.find(id="timeZoneGmtOffsetFormatted")
-        gmt = str(gmt).replace('<span id="timeZoneGmtOffsetFormatted">','')
-        gmt = gmt.replace('</span>','')
-        gmt = gmt.replace('(','')
-        gmt = gmt.replace(')','')
-        print(gmt)
-        return gmt
+        try:
+            url = f"https://ng.investing.com/economic-calendar/"
+            response = requests.get(url)
+            soup = BeautifulSoup(response.content, "html.parser")
+            gmt = soup.find(id="timeZoneGmtOffsetFormatted")
+            gmt = str(gmt).replace('<span id="timeZoneGmtOffsetFormatted">','')
+            gmt = gmt.replace('</span>','')
+            gmt = gmt.replace('(','')
+            gmt = gmt.replace(')','')
+            print(gmt)
+            return gmt
+        except Exception as e:
+            print(e)
+            time.sleep(5)
+            print("Please wait, while i try again on the news website")
 
 if mt5.initialize():
     print("Connection is established")
@@ -56,17 +61,26 @@ strength = []# 0 is neutral 1 is strong and 2 is weak
 hour = 14
 min = 30
 
+
+#Initialization state 
+t = None
+while True:
+    gmt = timeGMT()
+    print("Laoding !!!!")
+    if gmt is not None:
+        t = gmt.split(" ")[1].replace('+',"").split(":")[0]
+        t = int(t)
+        print(t)
+        break
+
+
+
 while True:
     news = initialize()
       
     # Get the current local time
     now = datetime.datetime.now()
     # Extract hour and minute
-    gmt = timeGMT()
-    t = gmt.split(" ")[1].replace('+',"").split(":")[0]
-    t = int(t)
-    print(t)
- 
     hour = now.hour + ( t - 1 )
     min = now.minute
 
