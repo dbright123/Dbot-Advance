@@ -2,49 +2,43 @@ import requests
 from bs4 import BeautifulSoup
 import datetime
 import time
-#import webbrowser
-#from mt5linux import MetaTrader5
+
 import MetaTrader5 as mt5
 
-
-#mt5 = MetaTrader5()
-lot = 0.02
-
-def initialize():
+def connection():
     while True:
         try:
             url = f"https://ng.investing.com/economic-calendar/"
             response = requests.get(url)
-            soup = BeautifulSoup(response.content, "html.parser")
-            news = soup.find(id="economicCalendarData", class_="genTbl closedTbl ecoCalTbl persistArea js-economic-table")
-            news = news.find("tbody")
-            news = news.find_all("tr",class_="js-event-item")
-            if news is not None:
-                return(news)
+            if response is not None: 
+                return response
             else:
                 time.sleep(1)
                 print("Try again... on news website")
         except Exception as e:
-            time.sleep(1)
             print("Try again... on news website ", e)
 
+response = connection()
+lot = 0.02
+
+def initialize():     
+    soup = BeautifulSoup(response.content, "html.parser")
+    news = soup.find(id="economicCalendarData", class_="genTbl closedTbl ecoCalTbl persistArea js-economic-table")
+    news = news.find("tbody")
+    news = news.find_all("tr",class_="js-event-item")
+    if news is not None:
+        return(news)
+    
 def timeGMT():
-    while True:
-        try:
-            url = f"https://ng.investing.com/economic-calendar/"
-            response = requests.get(url)
-            soup = BeautifulSoup(response.content, "html.parser")
-            gmt = soup.find(id="timeZoneGmtOffsetFormatted")
-            gmt = str(gmt).replace('<span id="timeZoneGmtOffsetFormatted">','')
-            gmt = gmt.replace('</span>','')
-            gmt = gmt.replace('(','')
-            gmt = gmt.replace(')','')
-            print(gmt)
-            return gmt
-        except Exception as e:
-            print(e)
-            time.sleep(5)
-            print("Please wait, while i try again on the news website")
+    soup = BeautifulSoup(response.content, "html.parser")
+    gmt = soup.find(id="timeZoneGmtOffsetFormatted")
+    gmt = str(gmt).replace('<span id="timeZoneGmtOffsetFormatted">','')
+    gmt = gmt.replace('</span>','')
+    gmt = gmt.replace('(','')
+    gmt = gmt.replace(')','')
+    print(gmt)
+    return gmt
+        
 
 if mt5.initialize():
     print("Connection is established")
@@ -52,6 +46,9 @@ if mt5.initialize():
     print(mt5.account_info())
 else:
     print("Connection is not established")
+
+
+
 
 currency = ['USDCAD','USDJPY','EURUSD','GBPUSD','XAUUSD','AUDUSD']
 impact_color = ['blackFont','greenFont','redFont']
@@ -63,16 +60,15 @@ min = 30
 
 
 #Initialization state 
-t = None
-while True:
-    gmt = timeGMT()
-    print("Laoding !!!!")
-    if gmt is not None:
-        t = gmt.split(" ")[1].replace('+',"").split(":")[0]
-        t = int(t)
-        print(t)
-        break
+t = ""
 
+gmt = timeGMT()
+print("Laoding !!!!")
+
+if gmt is not None:
+    t = gmt.split(" ")[1].replace('+',"").split(":")[0]
+    t = int(t)
+    print(t)
 
 
 while True:
@@ -86,7 +82,9 @@ while True:
 
     print("current time:",hour,":",min)
     
-    if hour > 19: break
+    if hour > 23: 
+        print("Time for the news analysis is up, program shutting down")
+        break
 
     print("Total number of news ",len(news))
     for i in range(len(news)):
