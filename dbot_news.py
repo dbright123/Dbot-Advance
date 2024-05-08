@@ -21,7 +21,8 @@ def connection():
 response = connection()
 lot = 0.02
 
-def initialize():     
+def initialize():  
+    response = connection()   
     soup = BeautifulSoup(response.content, "html.parser")
     news = soup.find(id="economicCalendarData", class_="genTbl closedTbl ecoCalTbl persistArea js-economic-table")
     news = news.find("tbody")
