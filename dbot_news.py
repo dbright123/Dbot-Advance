@@ -30,7 +30,7 @@ def initialize():
     if news is not None:
         return(news)
     
-def timeGMT():
+def timeGMT(response):
     soup = BeautifulSoup(response.content, "html.parser")
     gmt = soup.find(id="timeZoneGmtOffsetFormatted")
     gmt = str(gmt).replace('<span id="timeZoneGmtOffsetFormatted">','')
@@ -63,7 +63,7 @@ min = 30
 #Initialization state 
 t = ""
 
-gmt = timeGMT()
+gmt = timeGMT(response)
 print("Laoding !!!!")
 
 if gmt is not None:
