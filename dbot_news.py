@@ -18,17 +18,19 @@ def connection():
         except Exception as e:
             print("Try again... on news website ", e)
 
-response = connection()
-lot = 0.02
+
 
 def initialize():  
     response = connection()   
     soup = BeautifulSoup(response.content, "html.parser")
     news = soup.find(id="economicCalendarData", class_="genTbl closedTbl ecoCalTbl persistArea js-economic-table")
-    news = news.find("tbody")
-    news = news.find_all("tr",class_="js-event-item")
     if news is not None:
+        news = news.find("tbody")
+        news = news.find_all("tr",class_="js-event-item")
         return(news)
+    else: return None
+    
+    
     
 def timeGMT(response):
     soup = BeautifulSoup(response.content, "html.parser")
@@ -49,7 +51,9 @@ else:
     print("Connection is not established")
 
 
-
+#Initialization state
+response = connection()
+lot = 0.02
 
 currency = ['USDCAD','USDJPY','EURUSD','GBPUSD','XAUUSD','AUDUSD']
 impact_color = ['blackFont','greenFont','redFont']
@@ -58,9 +62,7 @@ strength = []# 0 is neutral 1 is strong and 2 is weak
 
 hour = 14
 min = 30
-
-
-#Initialization state 
+ 
 t = ""
 
 gmt = timeGMT(response)
@@ -73,8 +75,14 @@ if gmt is not None:
 
 
 while True:
-    news = initialize()
-      
+    while True:
+        news = initialize()
+        if news is not None:
+            break
+        else:
+            print("Try again... on news website")
+            time.sleep(5)
+    
     # Get the current local time
     now = datetime.datetime.now()
     # Extract hour and minute
