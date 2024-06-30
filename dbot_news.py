@@ -104,8 +104,8 @@ while True:
         if t_currency == "USD":#the currency i am concerned about
             #print(target_news)
             t_impact = str(target_news[2]).split("High Volatility Expected")
-            t_impact2 = str(target_news[2]).split("Moderate Volatility Expected")
-            if len(t_impact) > 1 or len(t_impact2) > 1: 
+            #t_impact2 = str(target_news[2]).split("Moderate Volatility Expected")
+            if len(t_impact) > 1: 
                 t_time = str(target_news[0]).replace('<td class="first left time js-time" title="">','')
                 t_time = t_time.replace("</td>",'')
                 d_time = t_time.split(":")
