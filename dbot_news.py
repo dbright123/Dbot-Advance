@@ -96,6 +96,9 @@ while True:
     if week >= 5: 
         print("Time for the news analysis is up, program shutting down")
         break
+    elif hour > 22:
+        print("Please wait!!!, while news program prepares for the next day")
+        time.sleep(60)
     else:
         print("Total number of news ",len(news))
         for i in range(len(news)):
@@ -225,14 +228,14 @@ while True:
                         if i <= 1:
                             print("Buy market", currency[i])
                             try:
-                                result = mt5.Buy(symbol=currency[i],volume=lot)
+                                result = mt5.Buy(symbol=currency[i],volume=lot, comment = "dbot_news")
                                 print(result)
                             except:
                                 print("Error in buy market")
                         else:
                             print("Sell market", currency[i])
                             try:
-                                result = mt5.Sell(symbol=currency[i],volume=lot)
+                                result = mt5.Sell(symbol=currency[i],volume=lot, comment = "dbot_news")
                                 print(result)
                             except:
                                 print("Error in sell market")
@@ -242,7 +245,7 @@ while True:
                         if i > 1:
                             print("Buy market ", currency[i])
                             try:
-                                result = mt5.Buy(symbol=currency[i],volume=lot)
+                                result = mt5.Buy(symbol=currency[i],volume=lot, comment = "dbot_news")
                                 print(result)
                             except:
                                 print("Error in buy market")
@@ -250,7 +253,7 @@ while True:
                         else:
                             print("Sell market", currency[i])
                             try:
-                                result = mt5.Sell(symbol=currency[i],volume=lot)
+                                result = mt5.Sell(symbol=currency[i],volume=lot, comment = "dbot_news")
                                 print(result)
                             except:
                                 print("Error in sell market")
