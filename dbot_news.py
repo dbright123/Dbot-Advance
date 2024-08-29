@@ -53,7 +53,7 @@ else:
 
 #Initialization state
 response = connection()
-lot = 0.02
+lot = 1
 
 currency = ['USDCAD','USDJPY','EURUSD','GBPUSD','XAUUSD','AUDUSD']
 impact_color = ['blackFont','greenFont','redFont']
@@ -276,7 +276,7 @@ while True:
                                     #Edit market over here for change in sl
                                     print(target_order)
                                     open_price = target_order.price_open
-                                    if(target_order.profit >= target_order.volume * 80  and target_order.sl == 0):
+                                    if(target_order.profit >= target_order.volume * 100  and target_order.sl == 0):
                                         #modify the market
                                         sl = target_order.price_current + target_order.price_open
                                         sl = sl/2.0
