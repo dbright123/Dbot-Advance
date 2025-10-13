@@ -9,7 +9,7 @@ from scaler3d2d import preprocess_and_save_scalers,transform_data, inverse_trans
 
 SEQ_LEN = 240
 PRED_STEPS = 5
-SYMBOL_TO_SIMULATE = 'GBPUSD' # <-- CHANGE THIS SYMBOL TO TEST DIFFERENT MARKETS
+SYMBOL_TO_SIMULATE = 'AUDUSD' # <-- CHANGE THIS SYMBOL TO TEST DIFFERENT MARKETS
 N_CLUSTERS = 5
 SL_BUFFER_PIPS = 20
 PRICE_NEAR_CLUSTER_PIPS = 10
@@ -47,8 +47,12 @@ def load_data_and_model(symbol):
     X, y = preprocess_and_save_scalers(X, y,f'{symbol} scaler_x.joblib',f'{symbol} scaler_y.joblib')
     print(f"Loading model from {model_path}...")
     model = load_model(model_path)
-    y_pred = model.predict(X[-3000:])
-    y_test = y[-3000:]
+    y_pred = model.predict(X[-1000:])
+    #y_test = y[-3000:]
+
+    _,y_test = inverse_transform_data(scaled_y=y[-1000:], scaler_y_filename=f'{symbol} scaler_y.joblib')
+    _,y_pred = inverse_transform_data(scaled_y=y_pred, scaler_y_filename=f'{symbol} scaler_y.joblib')
+    #print(y_test, " comparing to ", y_pred)
     # 1. Calculate the error (the gap between actual and predicted)
     error = y_test - y_pred
 
@@ -160,9 +164,10 @@ def run_simulation(data_h1, model, symbol):
         model_input = np.reshape(prediction_data_sequence, (1, SEQ_LEN, 4))
         model_input, _ = transform_data(model_input,scaler_x_filename=f'{symbol} scaler_x.joblib')
         
-        predictions = model.predict(model_input, verbose=0) + average_gap
+        predictions = model.predict(model_input, verbose=0)
         _,predictions = inverse_transform_data(scaled_y= predictions, scaler_y_filename=f'{symbol} scaler_y.joblib')
-        predictions = predictions[0]
+        predictions = predictions + average_gap
+        predictions = predictions[0] 
         first_pred = predictions[0]
 
         nearest_cluster, cluster_idx = get_nearest_cluster(current_price, cluster_centers)
