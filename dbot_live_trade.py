@@ -1,22 +1,22 @@
+import MetaTrader5 as mt5
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from tensorflow.keras.models import load_model
-import os
+import joblib
 import time
-import MetaTrader5 as mt5 # <-- Import the MT5 library
-from scaler3d2d import transform_data, inverse_transform_data
+import os
+from datetime import datetime
+from scaler3d2d import create_sequences, transform_data, inverse_transform_data
+import threading
+import warnings
+warnings.filterwarnings('ignore')
 
 # --- Configuration ---
-
-# --- TRADING PARAMETERS ---
-SYMBOL_TO_TRADE = 'GBPUSD'
-TIMEFRAME = mt5.TIMEFRAME_H1 # Using H1 timeframe
-VOLUME = 0.01 # Lot size for trades
-MAGIC_NUMBER = 123456 # Unique identifier for this bot's trades
-
-# --- STRATEGY PARAMETERS ---
+SYMBOL_TO_TRADE = 'AUDUSD'
+TIMEFRAME = mt5.TIMEFRAME_H1 
+LOT_SIZE = 0.01
 SEQ_LEN = 240
 PRED_STEPS = 5
 N_CLUSTERS = 5
@@ -24,233 +24,361 @@ SL_BUFFER_PIPS = 20
 PRICE_NEAR_CLUSTER_PIPS = 10
 BREAKEVEN_PROFIT_PIPS = 10
 TP_RISK_REWARD_RATIO = 5
+MAGIC_NUMBER = 123456 # Unique identifier for trades placed by this EA
 
-# --- Load Model ---
-def load_trading_model(symbol):
-    
-    model_path = f'Generated{symbol} lstm_best.keras'
+class MT5Trader:
+    def __init__(self, symbol, timeframe, lot_size):
+        self.symbol = symbol
+        self.timeframe = timeframe
+        self.lot_size = lot_size
+        self.pip_value = None # Will be set after MT5 initialization
+        self.model = None
+        self.average_gap = 0
+        self.plot_data = {
+            'price_data': None,
+            'clusters': None,
+            'nearest_cluster': None,
+            'prediction': None,
+            'open_position': None
+        }
+        self.plot_lock = threading.Lock()
+        self.plot_running = False
+        self.plot_thread = None
 
-    if not os.path.exists(model_path):
-        print(f"Error: Model file not found: {model_path}")
-        exit()
+    def _get_pip_value(self):
+        """Determines the pip value for the symbol. Assumes MT5 is initialized."""
+        symbol_info = mt5.symbol_info(self.symbol)
+        if symbol_info is None:
+            print(f"Could not find symbol info for {self.symbol}. Exiting.")
+            print("Please check if the symbol name matches your broker's (e.g., 'AUDUSD.m') and is visible in Market Watch.")
+            return None
         
-    print(f"Loading model from {model_path}...")
-    model = load_model(model_path)
-    return model
+        if "JPY" in self.symbol.upper():
+            return 0.01
+        elif symbol_info.digits == 5 or symbol_info.digits == 3:
+            return 0.0001 if symbol_info.digits == 5 else 0.001
+        else:
+            return 0.01
 
-# --- Helper Functions (Pip calculations are the same) ---
-def get_pip_value(symbol):
-    """Returns the pip value for a given symbol."""
-    if 'JPY' in symbol: return 0.01
-    return 0.0001 # Simplified for Forex, adjust if needed
+    def pips_to_price(self, pips):
+        return pips * self.pip_value
 
-def pips_to_price(pips, symbol):
-    return pips * get_pip_value(symbol)
+    def price_to_pips(self, price_diff):
+        return price_diff / self.pip_value
 
-def price_to_pips(price_diff, symbol):
-    return price_diff / get_pip_value(symbol)
-
-def get_nearest_cluster(current_price, cluster_centers):
-    distances = [abs(c[0] - current_price) for c in cluster_centers]
-    nearest_idx = distances.index(min(distances))
-    return cluster_centers[nearest_idx][0], nearest_idx
-
-def is_price_near_cluster(current_price, cluster_value, tolerance_pips, symbol):
-    tolerance = pips_to_price(tolerance_pips, symbol)
-    return abs(current_price - cluster_value) <= tolerance
-
-# --- MT5 Interaction Functions ---
-
-def get_mt5_data(symbol, timeframe, count):
-    """Fetches historical bar data from MT5."""
-    rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, count)
-    if rates is None or len(rates) == 0:
-        print(f"Error fetching data for {symbol} from MT5.")
-        return None
-    df = pd.DataFrame(rates)
-    df['time'] = pd.to_datetime(df['time'], unit='s')
-    return df
-
-def check_for_open_trade(symbol, magic_number):
-    """Checks if a trade managed by this bot is already open."""
-    positions = mt5.positions_get(symbol=symbol)
-    if positions is None:
-        return None
-    for pos in positions:
-        if pos.magic == magic_number:
-            return pos # Return the position object if found
-    return None
-
-def place_order(symbol, trade_type, volume, sl, tp, magic_number):
-    """Sends a trade order to MT5."""
-    point = mt5.symbol_info(symbol).point
-    price = mt5.symbol_info_tick(symbol).ask if trade_type == mt5.ORDER_TYPE_BUY else mt5.symbol_info_tick(symbol).bid
-
-    request = {
-        "action": mt5.TRADE_ACTION_DEAL,
-        "symbol": symbol,
-        "volume": volume,
-        "type": trade_type,
-        "price": price,
-        "sl": sl,
-        "tp": tp,
-        "magic": magic_number,
-        "comment": "dtrade_bot",
-        "type_time": mt5.ORDER_TIME_GTC,
-        "type_filling": mt5.ORDER_FILLING_IOC,
-    }
-    
-    result = mt5.order_send(request)
-    if result.retcode != mt5.TRADE_RETCODE_DONE:
-        print(f"Order send failed, retcode={result.retcode}")
-        return None
-    
-    print(f"SUCCESS: Order sent for {symbol}, ticket {result.order}")
-    return result
-
-def modify_position_sl(position, new_sl, magic_number):
-    """Modifies the stop loss of an existing position (for breakeven)."""
-    request = {
-        "action": mt5.TRADE_ACTION_SLTP,
-        "position": position.ticket,
-        "sl": new_sl,
-        "tp": position.tp, # Keep the original TP
-        "magic": magic_number,
-    }
-    result = mt5.order_send(request)
-    if result.retcode != mt5.TRADE_RETCODE_DONE:
-        print(f"Failed to modify SL, retcode={result.retcode}")
-    else:
-        print(f"SUCCESS: Position {position.ticket} SL moved to breakeven: {new_sl:.5f}")
-
-
-# --- Main Trading Loop ---
-def run_live_trader():
-    """The main function to run the live trading bot."""
-    print("Starting DTrade Live Bot...")
-    
-    # --- INITIALIZATION ---
-    if not mt5.initialize():
-        print("initialize() failed, error code =", mt5.last_error())
-        quit()
+    def initialize_mt5(self):
+        """Initializes connection to MetaTrader 5 and selects the symbol."""
+        if not mt5.initialize():
+            print("initialize() failed, error code =", mt5.last_error())
+            return False
+        print("MetaTrader 5 connection initialized.")
         
-    print("MT5 Connection Successful")
-    model = load_trading_model(SYMBOL_TO_TRADE)
+        # Ensure the symbol is available and selected in Market Watch
+        if not mt5.symbol_select(self.symbol, True):
+            print(f"Failed to select {self.symbol}. The symbol may not exist on your broker's server or is not in the Market Watch.")
+            mt5.shutdown()
+            return False
+            
+        return True
     
-    # Initialize plotting
-    plt.ion()
-    fig, ax = plt.subplots(figsize=(15, 8))
+    def load_model_and_scalers(self):
+        """Loads the pre-trained model and calculates the prediction gap."""
+        model_path = f'Generated{self.symbol} lstm_best.keras'
+        scaler_y_path = f'{self.symbol} scaler_y.joblib'
+        
+        if not os.path.exists(model_path) or not os.path.exists(scaler_y_path):
+            print(f"Error: Model or scaler not found for {self.symbol}.")
+            return False
+            
+        print(f"Loading model from {model_path}...")
+        self.model = load_model(model_path)
+        
+        # Calculate average prediction gap (bias correction)
+        print("Calculating model prediction bias...")
+        data = self.get_market_data(self.symbol, self.timeframe, SEQ_LEN + 1000) # Get more data for calculation
+        if data is None or len(data) < SEQ_LEN + PRED_STEPS:
+            print("Not enough data to calculate bias.")
+            return False
 
-    # --- THE LIVE LOOP ---
-    while True:
+        X, y = create_sequences(data[['open', 'high', 'low', 'close']].values, SEQ_LEN, PRED_STEPS)
+        
+        _, y_transformed = transform_data(data_y=y, scaler_y_filename=scaler_y_path)
+        y_pred_transformed = self.model.predict(transform_data(X, scaler_x_filename=f'{self.symbol} scaler_x.joblib')[0])
+
+        _, y_test = inverse_transform_data(scaled_y=y_transformed, scaler_y_filename=scaler_y_path)
+        _, y_pred = inverse_transform_data(scaled_y=y_pred_transformed, scaler_y_filename=scaler_y_path)
+        
+        error = y_test - y_pred
+        self.average_gap = np.mean(error)
+        print(f"Average Prediction Gap (Bias Correction): {self.average_gap:.7f}")
+        return True
+
+    def get_market_data(self, symbol, timeframe, count):
+        """Fetches historical price data from MT5."""
+        rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, count)
+        if rates is None:
+            print("Failed to get rates:", mt5.last_error())
+            return None
+        return pd.DataFrame(rates)
+
+    def get_prediction(self, data):
+        """Generates a price prediction using the loaded model."""
+        sequence = data[['open', 'high', 'low', 'close']].values
+        model_input = np.reshape(sequence, (1, SEQ_LEN, 4))
+        
+        model_input_scaled, _ = transform_data(model_input, scaler_x_filename=f'{self.symbol} scaler_x.joblib')
+        
+        predictions_scaled = self.model.predict(model_input_scaled, verbose=0)
+        
+        _, predictions = inverse_transform_data(scaled_y=predictions_scaled, scaler_y_filename=f'{self.symbol} scaler_y.joblib')
+        
+        # Apply the bias correction
+        corrected_predictions = predictions + self.average_gap
+        return corrected_predictions[0]
+
+    def execute_trade(self, trade_type, price, sl, tp):
+        """Places a trade order in MT5."""
+        request = {
+            "action": mt5.TRADE_ACTION_DEAL,
+            "symbol": self.symbol,
+            "volume": self.lot_size,
+            "type": trade_type,
+            "price": price,
+            "sl": sl,
+            "tp": tp,
+            "magic": MAGIC_NUMBER,
+            "comment": "Python LSTM Trade",
+            "type_time": mt5.ORDER_TIME_GTC,
+            "type_filling": mt5.ORDER_FILLING_IOC,
+        }
+        result = mt5.order_send(request)
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+            print(f"Order send failed, retcode={result.retcode}")
+        return result
+
+    def get_open_trades(self):
+        """Retrieves currently open trades for this EA."""
+        positions = mt5.positions_get(symbol=self.symbol)
+        if positions is None:
+            return []
+        
+        # Filter positions by magic number
+        return [p for p in positions if p.magic == MAGIC_NUMBER]
+
+    def close_trade(self, position):
+        """Closes an open position."""
+        trade_type = mt5.ORDER_TYPE_SELL if position.type == mt5.ORDER_TYPE_BUY else mt5.ORDER_TYPE_BUY
+        price = mt5.symbol_info_tick(self.symbol).ask if position.type == mt5.ORDER_TYPE_BUY else mt5.symbol_info_tick(self.symbol).bid
+        
+        request = {
+            "action": mt5.TRADE_ACTION_DEAL,
+            "symbol": self.symbol,
+            "volume": position.volume,
+            "type": trade_type,
+            "position": position.ticket,
+            "price": price,
+            "magic": MAGIC_NUMBER,
+            "comment": "Close Python Trade",
+            "type_time": mt5.ORDER_TIME_GTC,
+            "type_filling": mt5.ORDER_FILLING_IOC,
+        }
+        result = mt5.order_send(request)
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+            print(f"Close order failed, retcode={result.retcode}")
+        return result
+
+    def manage_breakeven(self, position):
+        """Manages breakeven for a profitable trade."""
+        if position.type == mt5.ORDER_TYPE_BUY: # Long position
+            current_profit_pips = self.price_to_pips(position.price_current - position.price_open)
+            if current_profit_pips > BREAKEVEN_PROFIT_PIPS:
+                new_sl = position.price_open + self.pips_to_price(1) # Move SL to entry + 1 pip
+                if position.sl < new_sl:
+                    print(f"🛡️ Moving SL to breakeven for LONG position #{position.ticket}")
+                    self.modify_position(position.ticket, new_sl, position.tp)
+
+        elif position.type == mt5.ORDER_TYPE_SELL: # Short position
+            current_profit_pips = self.price_to_pips(position.price_open - position.price_current)
+            if current_profit_pips > BREAKEVEN_PROFIT_PIPS:
+                new_sl = position.price_open - self.pips_to_price(1) # Move SL to entry - 1 pip
+                if position.sl > new_sl:
+                    print(f"🛡️ Moving SL to breakeven for SHORT position #{position.ticket}")
+                    self.modify_position(position.ticket, new_sl, position.tp)
+
+    def modify_position(self, ticket, sl, tp):
+        """Modifies the SL/TP of an open position."""
+        request = {
+            "action": mt5.TRADE_ACTION_SLTP,
+            "position": ticket,
+            "sl": sl,
+            "tp": tp,
+        }
+        result = mt5.order_send(request)
+        if result.retcode != mt5.TRADE_RETCODE_DONE:
+            print(f"Modify failed, retcode={result.retcode}, comment={result.comment}")
+
+    def plot_worker(self):
+        """Background worker for plotting to prevent blocking."""
+        plt.ion()
+        fig, ax = plt.subplots(figsize=(15, 8))
+        self.plot_running = True
+        
+        while self.plot_running:
+            with self.plot_lock:
+                if self.plot_data['price_data'] is not None:
+                    ax.clear()
+                    
+                    price_data = self.plot_data['price_data']
+                    clusters = self.plot_data['clusters']
+                    nearest_cluster = self.plot_data['nearest_cluster']
+                    prediction = self.plot_data['prediction']
+                    open_position = self.plot_data['open_position']
+                    
+                    prices = price_data['close']
+                    ax.plot(prices.index, prices, label='Close Price', color='blue', linewidth=2)
+                    
+                    # Plot clusters
+                    if clusters is not None:
+                        for center in clusters:
+                            ax.axhline(y=center[0], color='orange', linestyle='--', linewidth=1.5, alpha=0.7)
+                        ax.axhline(y=nearest_cluster, color='purple', linestyle='-', linewidth=2, label=f'Nearest Cluster: {nearest_cluster:.5f}')
+                    
+                    # Plot prediction
+                    if prediction is not None:
+                        ax.plot(prices.index[-1], prediction, 'ro', markersize=8, label='Prediction')
+
+                    # Plot open trade
+                    if open_position:
+                        entry_price = open_position.price_open
+                        trade_type = "LONG" if open_position.type == mt5.ORDER_TYPE_BUY else "SHORT"
+                        ax.plot(prices.index[-1], entry_price, 'go' if trade_type == "LONG" else 'ro', markersize=12, label=f'{trade_type} Entry')
+                        ax.axhline(y=open_position.sl, color='red', linestyle='--', linewidth=2, label=f'SL: {open_position.sl:.5f}')
+                        ax.axhline(y=open_position.tp, color='green', linestyle=':', linewidth=2, label=f'TP: {open_position.tp:.5f}')
+                    
+                    ax.set_title(f'{self.symbol} Live Trading | Last Update: {datetime.now().strftime("%H:%M:%S")}')
+                    ax.legend(loc='upper left')
+                    ax.grid(True, alpha=0.3)
+                    plt.tight_layout()
+                    
+                    # Non-blocking plot update
+                    fig.canvas.draw()
+                    fig.canvas.flush_events()
+            
+            time.sleep(2)  # Update plot every 2 seconds
+
+    def update_plot(self, price_data, clusters, nearest_cluster, prediction, open_position):
+        """Updates plot data without blocking."""
+        with self.plot_lock:
+            self.plot_data.update({
+                'price_data': price_data,
+                'clusters': clusters,
+                'nearest_cluster': nearest_cluster,
+                'prediction': prediction,
+                'open_position': open_position
+            })
+
+    def start_plotting(self):
+        """Starts the plotting thread."""
+        self.plot_thread = threading.Thread(target=self.plot_worker, daemon=True)
+        self.plot_thread.start()
+        print("Plotting thread started...")
+
+    def stop_plotting(self):
+        """Stops the plotting thread."""
+        self.plot_running = False
+        if self.plot_thread and self.plot_thread.is_alive():
+            self.plot_thread.join(timeout=2)
+        plt.close('all')
+
+    def run(self):
+        """Main trading loop."""
         try:
-            # --- 1. GET DATA & CURRENT PRICE ---
-            # Fetch enough data to create sequences
-            data_h1 = get_mt5_data(SYMBOL_TO_TRADE, TIMEFRAME, SEQ_LEN + 200) # Fetch more for context
-            if data_h1 is None:
-                time.sleep(5)
-                continue
+            if not self.initialize_mt5():
+                return
             
-            current_price = mt5.symbol_info_tick(SYMBOL_TO_TRADE).bid
+            self.pip_value = self._get_pip_value()
+            if self.pip_value is None:
+                return # Error message is printed in _get_pip_value
+
+            if not self.load_model_and_scalers():
+                return
+
+            print("\n--- Starting Live Trading Bot ---")
+            print(f"Symbol: {self.symbol} | Lot Size: {self.lot_size} | Timeframe: {self.timeframe}")
             
-            # --- 2. CHECK TRADE STATE ---
-            open_position = check_for_open_trade(SYMBOL_TO_TRADE, MAGIC_NUMBER)
-            in_trade = open_position is not None
+            # Start plotting thread
+            self.start_plotting()
             
-            # --- 3. TRADE MANAGEMENT (IF IN A TRADE) ---
-            if in_trade:
-                trade_entry_price = open_position.price_open
-                trade_type = 'long' if open_position.type == mt5.ORDER_TYPE_BUY else 'short'
+            while True:
+                # --- Data & Prediction ---
+                market_data = self.get_market_data(self.symbol, self.timeframe, SEQ_LEN)
+                if market_data is None or len(market_data) < SEQ_LEN:
+                    time.sleep(5)
+                    continue
+
+                current_price = market_data['close'].iloc[-1]
                 
-                if trade_type == 'long':
-                    current_profit_pips = price_to_pips(current_price - trade_entry_price, SYMBOL_TO_TRADE)
-                else:
-                    current_profit_pips = price_to_pips(trade_entry_price - current_price, SYMBOL_TO_TRADE)
-                
-                # Breakeven Logic
-                if current_profit_pips >= BREAKEVEN_PROFIT_PIPS:
-                    # Check if SL is already at or past breakeven
-                    breakeven_price = trade_entry_price + pips_to_price(1, SYMBOL_TO_TRADE) # 1 pip profit BE
-                    if (trade_type == 'long' and open_position.sl < breakeven_price) or \
-                       (trade_type == 'short' and open_position.sl > breakeven_price):
-                        print(f"🛡️ BREAKEVEN triggered. Moving SL for position {open_position.ticket}")
-                        modify_position_sl(open_position, breakeven_price, MAGIC_NUMBER)
-            
-            # --- 4. TRADE ENTRY LOGIC (IF NOT IN A TRADE) ---
-            if not in_trade:
-                # Use the most recent data for clusters and prediction
-                recent_data = data_h1.tail(SEQ_LEN)
-                
-                cluster_data = recent_data['close'].values.reshape(-1, 1)
+                predictions = self.get_prediction(market_data)
+                first_pred = predictions[0]
+
+                # --- Clustering (Support/Resistance) ---
+                cluster_data = market_data['close'].values.reshape(-1, 1)
                 kmeans = KMeans(n_clusters=N_CLUSTERS, random_state=0, n_init='auto').fit(cluster_data)
                 cluster_centers = sorted(kmeans.cluster_centers_, key=lambda x: x[0])
                 
-                # Prepare data for prediction
-                prediction_data_sequence = data_h1[['open', 'high', 'low', 'close']].tail(SEQ_LEN).values
-                model_input = np.reshape(prediction_data_sequence, (1, SEQ_LEN, 4))
-                model_input, _ = transform_data(model_input, scaler_x_filename=f'{SYMBOL_TO_TRADE} scaler_x.joblib')
+                distances = [abs(c[0] - current_price) for c in cluster_centers]
+                nearest_cluster = cluster_centers[np.argmin(distances)][0]
+
+                # --- Trade Management ---
+                open_trades = self.get_open_trades()
                 
-                predictions = model.predict(model_input, verbose=0)
-                _, predictions = inverse_transform_data(scaled_y=predictions, scaler_y_filename=f'{SYMBOL_TO_TRADE} scaler_y.joblib')
-                predictions = predictions[0]
+                if open_trades:
+                    # Manage existing trade
+                    self.manage_breakeven(open_trades[0])
+                    # Update plot with current data
+                    self.update_plot(market_data, cluster_centers, nearest_cluster, first_pred, open_trades[0])
 
-                nearest_cluster, _ = get_nearest_cluster(current_price, cluster_centers)
-                is_near_support_resistance = is_price_near_cluster(current_price, nearest_cluster, PRICE_NEAR_CLUSTER_PIPS, SYMBOL_TO_TRADE)
+                else:
+                     # --- New Trade Logic ---
+                    is_near_cluster = abs(current_price - nearest_cluster) <= self.pips_to_price(PRICE_NEAR_CLUSTER_PIPS)
 
-                # LONG ENTRY CONDITION
-                if (np.all(predictions > nearest_cluster) and is_near_support_resistance):
-                    stop_loss = nearest_cluster - pips_to_price(SL_BUFFER_PIPS, SYMBOL_TO_TRADE)
-                    sl_distance = current_price - stop_loss
-                    take_profit = current_price + (sl_distance * TP_RISK_REWARD_RATIO)
-                    
-                    print(f"\n🟢 LONG SIGNAL DETECTED at {current_price:.5f}")
-                    print(f"   Support Cluster: {nearest_cluster:.5f} | SL: {stop_loss:.5f} | TP: {take_profit:.5f}")
-                    place_order(SYMBOL_TO_TRADE, mt5.ORDER_TYPE_BUY, VOLUME, stop_loss, take_profit, MAGIC_NUMBER)
+                    # Buy Condition
+                    if np.all(predictions > nearest_cluster) and is_near_cluster:
+                        print("🟢 BUY SIGNAL DETECTED")
+                        sl = nearest_cluster - self.pips_to_price(SL_BUFFER_PIPS)
+                        tick = mt5.symbol_info_tick(self.symbol)
+                        sl_distance = tick.ask - sl
+                        tp = tick.ask + (sl_distance * TP_RISK_REWARD_RATIO)
+                        self.execute_trade(mt5.ORDER_TYPE_BUY, tick.ask, sl, tp)
 
-                # SHORT ENTRY CONDITION
-                elif (np.all(predictions < nearest_cluster) and is_near_support_resistance):
-                    stop_loss = nearest_cluster + pips_to_price(SL_BUFFER_PIPS, SYMBOL_TO_TRADE)
-                    sl_distance = stop_loss - current_price
-                    take_profit = current_price - (sl_distance * TP_RISK_REWARD_RATIO)
+                    # Sell Condition
+                    elif np.all(predictions < nearest_cluster) and is_near_cluster:
+                        print("🔴 SELL SIGNAL DETECTED")
+                        sl = nearest_cluster + self.pips_to_price(SL_BUFFER_PIPS)
+                        tick = mt5.symbol_info_tick(self.symbol)
+                        sl_distance = sl - tick.bid
+                        tp = tick.bid - (sl_distance * TP_RISK_REWARD_RATIO)
+                        self.execute_trade(mt5.ORDER_TYPE_SELL, tick.bid, sl, tp)
 
-                    print(f"\n🔴 SHORT SIGNAL DETECTED at {current_price:.5f}")
-                    print(f"   Resistance Cluster: {nearest_cluster:.5f} | SL: {stop_loss:.5f} | TP: {take_profit:.5f}")
-                    place_order(SYMBOL_TO_TRADE, mt5.ORDER_TYPE_SELL, VOLUME, stop_loss, take_profit, MAGIC_NUMBER)
+                    # Update plot with current data
+                    self.update_plot(market_data, cluster_centers, nearest_cluster, first_pred, None)
 
-            # --- 5. PLOTTING AND VISUALIZATION ---
-            ax.clear()
-            plot_data = data_h1.tail(200) # Plot the last 200 candles
-            ax.plot(plot_data.index, plot_data['close'], label='Close Price', color='blue', linewidth=1)
-            
-            # Plot Clusters
-            for center in cluster_centers:
-                ax.axhline(y=center[0], color='orange', linestyle='--', linewidth=1, alpha=0.8)
-            ax.axhline(y=nearest_cluster, color='purple', linestyle='-', linewidth=1.5, label=f'Nearest Cluster')
+                # Wait for the next bar
+                print(f"Last price: {current_price:.5f} | Nearest Cluster: {nearest_cluster:.5f} | Prediction: {first_pred:.5f} | Waiting for next bar...")
+                time.sleep(60) # Check every minute for new bar
 
-            # Plot trade info if in a trade
-            if in_trade:
-                entry_price = open_position.price_open
-                sl = open_position.sl
-                tp = open_position.tp
-                trade_color = 'green' if open_position.type == mt5.ORDER_TYPE_BUY else 'red'
-                
-                ax.axhline(y=entry_price, color=trade_color, linestyle='-', linewidth=1, label=f'Entry: {entry_price:.5f}')
-                ax.axhline(y=sl, color='red', linestyle='--', linewidth=1, label=f'SL: {sl:.5f}')
-                ax.axhline(y=tp, color='green', linestyle='--', linewidth=1, label=f'TP: {tp:.5f}')
-
-            ax.set_title(f'{SYMBOL_TO_TRADE} Live Chart | Current Price: {current_price:.5f}')
-            ax.legend(loc='upper left')
-            ax.grid(True, alpha=0.3)
-            plt.tight_layout()
-            plt.pause(1) # Pause to allow chart to update
-
-            # Wait before the next check. For H1, checking every few minutes is fine.
-            print("...waiting for next candle...")
-            time.sleep(60) # Check every 1 minutes
-
+        except KeyboardInterrupt:
+            print("Bot stopped by user.")
         except Exception as e:
-            print(f"An error occurred in the main loop: {e}")
-            time.sleep(60) # Wait a minute before retrying on error
+            print(f"An unexpected error occurred: {e}")
+        finally:
+            print("Shutting down MT5 connection and stopping plot...")
+            self.stop_plotting()
+            mt5.shutdown()
 
-if __name__ == '__main__':
-    run_live_trader()
+
+if __name__ == "__main__":
+    trader = MT5Trader(symbol=SYMBOL_TO_TRADE, 
+                       timeframe=TIMEFRAME, 
+                       lot_size=LOT_SIZE)
+    trader.run()
