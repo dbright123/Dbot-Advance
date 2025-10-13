@@ -16,6 +16,7 @@ PRICE_NEAR_CLUSTER_PIPS = 10
 BREAKEVEN_PROFIT_PIPS = 10
 TP_RISK_REWARD_RATIO = 5
 
+average_gap = 0 # Corrected gap from real and predicted
 
 # --- Load Model and Data ---
 def load_data_and_model(symbol):
@@ -46,7 +47,25 @@ def load_data_and_model(symbol):
     X, y = preprocess_and_save_scalers(X, y,f'{symbol} scaler_x.joblib',f'{symbol} scaler_y.joblib')
     print(f"Loading model from {model_path}...")
     model = load_model(model_path)
-    
+    y_pred = model.predict(X[-3000:])
+    y_test = y[-3000:]
+    # 1. Calculate the error (the gap between actual and predicted)
+    error = y_test - y_pred
+
+    # 2. Calculate the average gap (the bias)
+    average_gap = np.mean(error)
+    print(f"Average Gap (Bias): {average_gap:.7f}")
+
+    # 3. Add the average gap to your predictions to create a corrected version
+    y_pred_corrected = y_pred + average_gap
+
+    # --- Verification ---
+    # Let's check the first predicted value vs. the first actual value
+    print("\n--- Example of Correction ---")
+    print(f"Original Prediction: {y_pred[0, 0]:.7f}")
+    print(f"Corrected Prediction: {y_pred_corrected[0, 0]:.7f}")
+    print(f"Actual Value:        {y_test[0, 0]:.7f}")
+
     return df_h1, model
 
 # --- Helper Functions ---
@@ -141,7 +160,7 @@ def run_simulation(data_h1, model, symbol):
         model_input = np.reshape(prediction_data_sequence, (1, SEQ_LEN, 4))
         model_input, _ = transform_data(model_input,scaler_x_filename=f'{symbol} scaler_x.joblib')
         
-        predictions = model.predict(model_input, verbose=0)
+        predictions = model.predict(model_input, verbose=0) + average_gap
         _,predictions = inverse_transform_data(scaled_y= predictions, scaler_y_filename=f'{symbol} scaler_y.joblib')
         predictions = predictions[0]
         first_pred = predictions[0]
