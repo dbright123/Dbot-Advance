@@ -9,12 +9,13 @@ from scaler3d2d import preprocess_and_save_scalers,transform_data, inverse_trans
 
 SEQ_LEN = 240
 PRED_STEPS = 5
-SYMBOL_TO_SIMULATE = 'AUDUSD' # <-- CHANGE THIS SYMBOL TO TEST DIFFERENT MARKETS
+SYMBOL_TO_SIMULATE = 'XAUUSD' # <-- CHANGE THIS SYMBOL TO TEST DIFFERENT MARKETS
 N_CLUSTERS = 5
 SL_BUFFER_PIPS = 20
 PRICE_NEAR_CLUSTER_PIPS = 10
 BREAKEVEN_PROFIT_PIPS = 10
 TP_RISK_REWARD_RATIO = 5
+
 
 # --- Load Model and Data ---
 def load_data_and_model(symbol):
@@ -136,6 +137,8 @@ def run_simulation(data_h1, model, symbol):
         model_input = np.reshape(prediction_data_sequence, (1, SEQ_LEN, 4))
 
         predictions = model.predict(model_input, verbose=0)[0]
+        print("Current debugging ",predictions)
+        print(predictions.shape)
         first_pred = predictions[0]
 
         nearest_cluster, cluster_idx = get_nearest_cluster(current_price, cluster_centers)
