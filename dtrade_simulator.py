@@ -46,6 +46,7 @@ def load_data_and_model(symbol):
     X, y = preprocess_and_save_scalers(X, y,f'{symbol} scaler_x.joblib',f'{symbol} scaler_y.joblib')
     print(f"Loading model from {model_path}...")
     model = load_model(model_path)
+    
     return df_h1, model
 
 # --- Helper Functions ---
