@@ -264,7 +264,7 @@ class MT5Trader:
                     fig.canvas.draw()
                     fig.canvas.flush_events()
             
-            time.sleep(2)  # Update plot every 2 seconds
+            time.sleep(1)  # Update plot every 2 seconds
 
     def update_plot(self, price_data, clusters, nearest_cluster, prediction, open_position):
         """Updates plot data without blocking."""
@@ -321,6 +321,7 @@ class MT5Trader:
                 predictions = self.get_prediction(market_data)
                 first_pred = predictions[0]
 
+
                 # --- Clustering (Support/Resistance) ---
                 cluster_data = market_data['close'].values.reshape(-1, 1)
                 kmeans = KMeans(n_clusters=N_CLUSTERS, random_state=0, n_init='auto').fit(cluster_data)
@@ -364,8 +365,8 @@ class MT5Trader:
                     self.update_plot(market_data, cluster_centers, nearest_cluster, first_pred, None)
 
                 # Wait for the next bar
-                print(f"Last price: {current_price:.5f} | Nearest Cluster: {nearest_cluster:.5f} | Prediction: {first_pred:.5f} | Waiting for next bar...")
-                time.sleep(60) # Check every minute for new bar
+                print(f"Last price: {current_price:.5f} | Nearest Cluster: {nearest_cluster:.5f} | Prediction: {predictions} | Waiting for next bar...")
+                time.sleep(30) # Check every minute for new bar
 
         except KeyboardInterrupt:
             print("Bot stopped by user.")
