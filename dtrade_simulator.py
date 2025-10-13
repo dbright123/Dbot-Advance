@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from tensorflow.keras.models import load_model
 import os
-from scaler3d2d import preprocess_and_save_scalers,transform_data, inverse_transform_data
+from scaler3d2d import preprocess_and_save_scalers,transform_data, inverse_transform_data, create_sequences
 # --- Configuration ---
 
 SEQ_LEN = 240
 PRED_STEPS = 5
-SYMBOL_TO_SIMULATE = 'XAUUSD' # <-- CHANGE THIS SYMBOL TO TEST DIFFERENT MARKETS
+SYMBOL_TO_SIMULATE = 'GBPUSD' # <-- CHANGE THIS SYMBOL TO TEST DIFFERENT MARKETS
 N_CLUSTERS = 5
 SL_BUFFER_PIPS = 20
 PRICE_NEAR_CLUSTER_PIPS = 10
@@ -41,6 +41,9 @@ def load_data_and_model(symbol):
 
     print(f"Loading H1 data from {data_path_h1}...")
     df_h1 = pd.read_csv(data_path_h1)
+    
+    X, y = create_sequences(df_h1.values, SEQ_LEN, PRED_STEPS)  # X: (n_samples, SEQ_LEN, n_features), y: (n_samples, n_features)
+    X, y = preprocess_and_save_scalers(X, y,f'{symbol} scaler_x.joblib',f'{symbol} scaler_y.joblib')
     print(f"Loading model from {model_path}...")
     model = load_model(model_path)
     return df_h1, model
@@ -135,10 +138,11 @@ def run_simulation(data_h1, model, symbol):
 
         prediction_data_sequence = data_h1[['open', 'high', 'low', 'close']].iloc[i - SEQ_LEN:i].values
         model_input = np.reshape(prediction_data_sequence, (1, SEQ_LEN, 4))
-
-        predictions = model.predict(model_input, verbose=0)[0]
-        print("Current debugging ",predictions)
-        print(predictions.shape)
+        model_input, _ = transform_data(model_input,scaler_x_filename=f'{symbol} scaler_x.joblib')
+        
+        predictions = model.predict(model_input, verbose=0)
+        _,predictions = inverse_transform_data(scaled_y= predictions, scaler_y_filename=f'{symbol} scaler_y.joblib')
+        predictions = predictions[0]
         first_pred = predictions[0]
 
         nearest_cluster, cluster_idx = get_nearest_cluster(current_price, cluster_centers)
@@ -218,6 +222,7 @@ def run_simulation(data_h1, model, symbol):
                 stop_loss = nearest_cluster - pips_to_price(SL_BUFFER_PIPS, symbol)
                 sl_distance = trade_entry_price - stop_loss
                 take_profit = trade_entry_price + (sl_distance * TP_RISK_REWARD_RATIO)
+                #ake_profit = predictions[-1]
                 current_breakeven = 0
 
                 print(f"\n{'='*60}")
@@ -241,6 +246,7 @@ def run_simulation(data_h1, model, symbol):
                 stop_loss = nearest_cluster + pips_to_price(SL_BUFFER_PIPS, symbol)
                 sl_distance = stop_loss - trade_entry_price
                 take_profit = trade_entry_price - (sl_distance * TP_RISK_REWARD_RATIO)
+                #take_profit = predictions[-1]
                 current_breakeven = 0
                 
                 print(f"\n{'='*60}")
@@ -305,7 +311,6 @@ def run_simulation(data_h1, model, symbol):
         print(trade_df.to_string(index=False))
         # Add performance summary if needed...
 
-if __name__ == '__main__':
-    # You just need to change the symbol string here to run the simulation on a different market
-    market_data_h1, lstm_model = load_data_and_model(SYMBOL_TO_SIMULATE)
-    run_simulation(market_data_h1, lstm_model, SYMBOL_TO_SIMULATE)
+# You just need to change the symbol string here to run the simulation on a different market
+market_data_h1, lstm_model = load_data_and_model(SYMBOL_TO_SIMULATE)
+run_simulation(market_data_h1, lstm_model, SYMBOL_TO_SIMULATE)  

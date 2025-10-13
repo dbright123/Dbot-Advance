@@ -5,6 +5,24 @@ import os
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
+def create_sequences(data_scaled, seq_len, pred_steps = 5):
+    """
+    data_scaled: np.array shaped (n_rows, n_features)
+    returns X (n_samples, seq_len, n_features), y (n_samples, n_features)
+    where y is the row immediately following the window.
+    """
+    X, y = [], []
+    n_rows = data_scaled.shape[0]
+    for i in range(n_rows - seq_len - pred_steps + 1):
+        X.append(data_scaled[i:i+seq_len])
+        y.append(data_scaled[i+seq_len : i + seq_len+pred_steps, -1])
+    X = np.array(X)
+    y = np.array(y)
+    return X, y
+
+
+
+
 def preprocess_and_save_scalers(data_x, data_y, scaler_x_filename='scaler_x.joblib', scaler_y_filename='scaler_y.joblib'):
     """
     Preprocesses 3D X and 2D Y data, scales them to a range of [0, 1],
