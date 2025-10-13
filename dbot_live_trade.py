@@ -4,14 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from tensorflow.keras.models import load_model
-import joblib
+import random
 import time
 import os
 from datetime import datetime
 from scaler3d2d import create_sequences, transform_data, inverse_transform_data
 import threading
-import warnings
-warnings.filterwarnings('ignore')
+
 
 # --- Configuration ---
 SYMBOL_TO_TRADE = 'AUDUSD'
@@ -24,7 +23,7 @@ SL_BUFFER_PIPS = 20
 PRICE_NEAR_CLUSTER_PIPS = 10
 BREAKEVEN_PROFIT_PIPS = 10
 TP_RISK_REWARD_RATIO = 5
-MAGIC_NUMBER = 123456 # Unique identifier for trades placed by this EA
+MAGIC_NUMBER = random.randrange(1, 1000000) # Unique identifier for trades placed by this EA
 
 class MT5Trader:
     def __init__(self, symbol, timeframe, lot_size):
@@ -378,8 +377,7 @@ class MT5Trader:
             mt5.shutdown()
 
 
-if __name__ == "__main__":
-    trader = MT5Trader(symbol=SYMBOL_TO_TRADE, 
+trader = MT5Trader(symbol=SYMBOL_TO_TRADE, 
                        timeframe=TIMEFRAME, 
                        lot_size=LOT_SIZE)
-    trader.run()
+trader.run()
