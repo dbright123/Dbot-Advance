@@ -13,7 +13,7 @@ import threading
 
 
 # --- Configuration ---
-SYMBOL_TO_TRADE = 'AUDUSD'
+SYMBOL_TO_TRADE = 'GBPUSD'
 TIMEFRAME = mt5.TIMEFRAME_H1 
 LOT_SIZE = 0.01
 SEQ_LEN = 240
@@ -101,8 +101,8 @@ class MT5Trader:
 
         X, y = create_sequences(data[['open', 'high', 'low', 'close']].values, SEQ_LEN, PRED_STEPS)
         
-        _, y_transformed = transform_data(data_y=y, scaler_y_filename=scaler_y_path)
-        y_pred_transformed = self.model.predict(transform_data(X, scaler_x_filename=f'{self.symbol} scaler_x.joblib')[0])
+        _, y_transformed = transform_data(data_y=y[-(SEQ_LEN):], scaler_y_filename=scaler_y_path)
+        y_pred_transformed = self.model.predict(transform_data(X[-(SEQ_LEN):], scaler_x_filename=f'{self.symbol} scaler_x.joblib')[0])
 
         _, y_test = inverse_transform_data(scaled_y=y_transformed, scaler_y_filename=scaler_y_path)
         _, y_pred = inverse_transform_data(scaled_y=y_pred_transformed, scaler_y_filename=scaler_y_path)
@@ -148,7 +148,7 @@ class MT5Trader:
             "magic": MAGIC_NUMBER,
             "comment": "Python LSTM Trade",
             "type_time": mt5.ORDER_TIME_GTC,
-            "type_filling": mt5.ORDER_FILLING_IOC,
+            "type_filling": mt5.ORDER_FILLING_FOK,
         }
         result = mt5.order_send(request)
         if result.retcode != mt5.TRADE_RETCODE_DONE:
@@ -162,7 +162,7 @@ class MT5Trader:
             return []
         
         # Filter positions by magic number
-        return [p for p in positions if p.magic == MAGIC_NUMBER]
+        return [p for p in positions]
 
     def close_trade(self, position):
         """Closes an open position."""
@@ -179,7 +179,7 @@ class MT5Trader:
             "magic": MAGIC_NUMBER,
             "comment": "Close Python Trade",
             "type_time": mt5.ORDER_TIME_GTC,
-            "type_filling": mt5.ORDER_FILLING_IOC,
+            "type_filling": mt5.ORDER_FILLING_FOK,
         }
         result = mt5.order_send(request)
         if result.retcode != mt5.TRADE_RETCODE_DONE:
