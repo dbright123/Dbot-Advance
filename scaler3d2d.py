@@ -5,7 +5,7 @@ import os
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-def create_sequences(data_scaled, seq_len, pred_steps = 5):
+def create_sequences(data_scaled, seq_len, pred_steps = 5, y_location = -1):
     """
     data_scaled: np.array shaped (n_rows, n_features)
     returns X (n_samples, seq_len, n_features), y (n_samples, n_features)
@@ -15,7 +15,7 @@ def create_sequences(data_scaled, seq_len, pred_steps = 5):
     n_rows = data_scaled.shape[0]
     for i in range(n_rows - seq_len - pred_steps + 1):
         X.append(data_scaled[i:i+seq_len])
-        y.append(data_scaled[i+seq_len : i + seq_len+pred_steps, -1])
+        y.append(data_scaled[i+seq_len : i + seq_len+pred_steps, y_location])
     X = np.array(X)
     y = np.array(y)
     return X, y
