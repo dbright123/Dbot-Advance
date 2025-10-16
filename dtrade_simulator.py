@@ -21,16 +21,9 @@ average_gap = 0 # Corrected gap from real and predicted
 # --- Load Model and Data ---
 def load_data_and_model(symbol):
     """Loads the appropriate data and model based on the symbol."""
-    # This section might need adjustment if you have different file names for each symbol
-    if symbol in ['AUDUSD', 'NZDUSD']:
-        model_path = f'Generated{symbol} lstm_best.keras'
-        data_path_h1 = f'Generated{symbol} dbot.csv'
-    else:
-        # Fallback for other symbols - assumes a naming convention
-        # YOU MAY NEED TO EDIT THIS LOGIC to match your file names
-        print(f"Warning: Using default file paths for symbol '{symbol}'.")
-        model_path = f'Generated{symbol} lstm_best.keras'
-        data_path_h1 = f'Generated{symbol} dbot.csv'
+    
+    model_path = f'Generated{symbol} lstm_best.keras'
+    data_path_h1 = f'Generated{symbol} dbot.csv'
         
 
     required_files = [model_path, data_path_h1]
