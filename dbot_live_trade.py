@@ -17,7 +17,7 @@ SYMBOL_TO_TRADE = 'Volatility 75 Index'
 TIMEFRAME = mt5.TIMEFRAME_M5 
 LOT_SIZE = 0.01
 SEQ_LEN = 240
-PRED_STEPS = 5
+PRED_STEPS = 1
 N_CLUSTERS = 5
 SL_BUFFER_PIPS = 20
 PRICE_NEAR_CLUSTER_PIPS = 10
@@ -99,7 +99,7 @@ class MT5Trader:
             print("Not enough data to calculate bias.")
             return False
 
-        X, y = create_sequences(data[['open', 'high', 'low', 'close']].values, SEQ_LEN, PRED_STEPS)
+        X, y = create_sequences(data[["open", "high","low", "close","tick_volume"]].values, SEQ_LEN, PRED_STEPS, 3)
         
         _, y_transformed = transform_data(data_y=y[-(SEQ_LEN):], scaler_y_filename=scaler_y_path)
         y_pred_transformed = self.model.predict(transform_data(X[-(SEQ_LEN):], scaler_x_filename=f'{self.symbol} scaler_x.joblib')[0])
