@@ -13,8 +13,8 @@ import threading
 
 
 # --- Configuration ---
-SYMBOL_TO_TRADE = 'GBPUSD'
-TIMEFRAME = mt5.TIMEFRAME_H1 
+SYMBOL_TO_TRADE = 'Volatility 75 Index'
+TIMEFRAME = mt5.TIMEFRAME_M5 
 LOT_SIZE = 0.01
 SEQ_LEN = 240
 PRED_STEPS = 5
