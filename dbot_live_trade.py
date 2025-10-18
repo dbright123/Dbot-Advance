@@ -24,7 +24,7 @@ PRICE_NEAR_CLUSTER_PIPS = 10
 BREAKEVEN_PROFIT_PIPS = 5
 TP_RISK_REWARD_RATIO = 5
 MAGIC_NUMBER = random.randrange(1, 1000000) # Unique identifier for trades placed by this EA
-
+n_feature = 5
 class MT5Trader:
     def __init__(self, symbol, timeframe, lot_size):
         self.symbol = symbol
@@ -122,8 +122,8 @@ class MT5Trader:
 
     def get_prediction(self, data):
         """Generates a price prediction using the loaded model."""
-        sequence = data[['open', 'high', 'low', 'close']].values
-        model_input = np.reshape(sequence, (1, SEQ_LEN, 4))
+        sequence = data[["open", "high","low", "close","tick_volume"]].values
+        model_input = np.reshape(sequence, (1, SEQ_LEN, n_feature))
         
         model_input_scaled, _ = transform_data(model_input, scaler_x_filename=f'{self.symbol} scaler_x.joblib')
         
@@ -132,8 +132,9 @@ class MT5Trader:
         _, predictions = inverse_transform_data(scaled_y=predictions_scaled, scaler_y_filename=f'{self.symbol} scaler_y.joblib')
         
         # Apply the bias correction
-        corrected_predictions = predictions + self.average_gap
-        return corrected_predictions[0]
+        #corrected_predictions = predictions + self.average_gap
+        #return corrected_predictions[0]
+        return predictions
 
     def execute_trade(self, trade_type, price, sl, tp):
         """Places a trade order in MT5."""
