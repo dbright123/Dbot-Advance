@@ -29,3 +29,4 @@ Dbot_ML
 Dbot Installer.exe
 v75i t_model.joblib
 v75i t_model.joblib
+*.csv
