@@ -30,3 +30,6 @@ Dbot Installer.exe
 v75i t_model.joblib
 v75i t_model.joblib
 *.csv
+*.csv
+GeneratedAUDUSD dbot.csv
+GeneratedXAUUSD dbot.csv
